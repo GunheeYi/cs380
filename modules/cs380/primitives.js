@@ -125,7 +125,7 @@ export function generateCube(xlen = 1, ylen = 1, zlen = 1) {
   return data;
 }
 
-export function generateSphere(longitudes = 16, latitudes = 8) {
+export function generateSphere(longitudes = 16, latitudes = 8, radius = 1) {
   const data = {
     vertices: [],
     vertexNormals: [],
@@ -145,14 +145,14 @@ export function generateSphere(longitudes = 16, latitudes = 8) {
   };
 
   const angle2xyz = (theta, phi) => [
-    Math.cos(theta) * Math.sin(phi),
-    Math.cos(phi),
-    Math.sin(theta) * Math.sin(phi),
+    Math.cos(theta) * Math.sin(phi) * radius,
+    Math.cos(phi) * radius,
+    Math.sin(theta) * Math.sin(phi) * radius,
   ]
 
   // top tople
   for (let i = 0; i < longitudes; ++i) {
-    const p0 = [0, 1, 0];
+    const p0 = [0, radius, 0];
     const p1 = angle2xyz(
       i / longitudes * Math.PI * 2,
       1 / latitudes * Math.PI,
@@ -166,7 +166,7 @@ export function generateSphere(longitudes = 16, latitudes = 8) {
 
   // bottom pole
   for (let i = 0; i < longitudes; ++i) {
-    const p0 = [0, -1, 0];
+    const p0 = [0, -radius, 0];
     const p1 = angle2xyz(
       (i + 1) / longitudes * Math.PI * 2,
       (latitudes - 1) / latitudes * Math.PI,

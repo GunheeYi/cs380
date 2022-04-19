@@ -36,7 +36,17 @@ export class Transform {
     );
 
     // TODO: Implement hierarchical frames
+    // Make this._m2 to embed the parent's transform except its localScale...
+    // Hint: vec3.inverse(), mat4.scale(), and mat4.multiply() are recommended
+    if (!this.parent) return this._m2;
 
+    let _mp = this.parent.worldMatrix;
+    let parentScaleInverse3 = vec3.create();
+    vec3.inverse(parentScaleInverse3, this.parent.localScale);
+    let parentScaleInverse4 = mat4.create();
+    mat4.fromScaling(parentScaleInverse4, parentScaleInverse3);
+    mat4.multiply(_mp, _mp, parentScaleInverse4);
+    mat4.multiply(this._m2, _mp, this._m2);
     return this._m2;
   }
 
