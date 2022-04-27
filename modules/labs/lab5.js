@@ -123,7 +123,10 @@ export default class Lab5App extends cs380.BaseApp {
 
   finalize() {
     gl.canvas.removeEventListener("mousedown", this.handleMouseDown);
-    this.thingsToClear.forEach((it) => it.finalize());
+    this.thingsToClear.forEach((it) => {
+      console.log(it);
+      it.finalize()
+    });
     gl.disable(gl.CULL_FACE);
   }
 

@@ -22,11 +22,37 @@ export default class Assignment2 extends cs380.BaseApp {
 
     this.thingsToClear = [];
 
+    // SimpleOrbitControl
+    const orbitControlCenter = vec3.fromValues(0, 0, 0);
+    this.simpleOrbitControl = new cs380.utils.SimpleOrbitControl(
+      this.camera,
+      orbitControlCenter
+    );
+    this.thingsToClear.push(this.simpleOrbitControl);
+
     // initialize picking shader & buffer
     const pickingShader = await cs380.buildShader(cs380.PickingShader);
+    const simpleShader = await cs380.buildShader(SimpleShader);
     this.pickingBuffer = new cs380.PickingBuffer();
     this.pickingBuffer.initialize(width, height);
-    this.thingsToClear.push(pickingShader, this.pickingBuffer);
+    this.thingsToClear.push(pickingShader, simpleShader, this.pickingBuffer);
+
+    // CODE START -------------------------------
+    this.objects = [];
+
+    const sphereMeshData = cs380.primitives.generateSphere(100, 20, 1);
+    const sphereMesh = cs380.Mesh.fromData(sphereMeshData);
+    
+    let s = {};
+    s.pickableObject = new cs380.PickableObject(
+      sphereMesh,
+      simpleShader,
+      pickingShader,
+      2
+    );
+    s.pickableObject.uniforms.mainColor = vec3.fromValues(1, 0, 0);
+    this.objects.push(s);
+    console.log(this.objects)
 
     // Event listener for interactions
     this.handleKeyDown = (e) => {
@@ -84,6 +110,7 @@ export default class Assignment2 extends cs380.BaseApp {
 
   update(elapsed, dt) {
     // Updates before rendering here
+    this.simpleOrbitControl.update(dt);
 
     // Render picking information first
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.pickingBuffer.fbo);
@@ -94,8 +121,12 @@ export default class Assignment2 extends cs380.BaseApp {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     // renderPicking() here
+    for (const s of this.objects) {
+      s.pickableObject.renderPicking(this.camera);
+    }
 
     // Render real scene
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clearDepth(1.0);
     gl.enable(gl.DEPTH_TEST);
@@ -103,5 +134,8 @@ export default class Assignment2 extends cs380.BaseApp {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     // render() here
+    for (const s of this.objects) {
+      s.pickableObject.render(this.camera);
+    }
   }
 }
