@@ -72,7 +72,7 @@ export default class Lab5App extends cs380.BaseApp {
         pickingShader,
         s.id
       );
-      this.thingsToClear.push(s.pickableObject);
+      // this.thingsToClear.push(s.pickableObject);
       s.pickableObject.uniforms.mainColor = vec3.fromValues(...s.color);
     }
     for (let i = 1; i < this.spheres.length; i++) this.spheres[i].pickableObject.transform.setParent(this.spheres[i-1].pickableObject.transform);
