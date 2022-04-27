@@ -150,7 +150,7 @@ export function generateSphere(longitudes = 16, latitudes = 8, radius = 1) {
     Math.sin(theta) * Math.sin(phi) * radius,
   ]
 
-  // top tople
+  // top pole
   for (let i = 0; i < longitudes; ++i) {
     const p0 = [0, radius, 0];
     const p1 = angle2xyz(
@@ -213,6 +213,22 @@ export function generateCone(sides = 16, radius = 1, height = 1) {
   };
 
   // TODO: Implement cone generation
+  const addTri = (p0, p1, p2) => {
+    data.vertices.push(...p0, ...p1, ...p2);
+    data.vertexNormals.push(...p0, ...p1, ...p2);
+  };
+
+  const origin = [0, 0, 0];
+  const top = [0, 0, height];
+
+  for (let i = 0; i < sides; i++) {
+    const theta1 = i / sides * Math.PI * 2;
+    const theta2 = (i + 1) / sides * Math.PI * 2;
+    const p0 = [ Math.cos(theta1) * radius, Math.sin(theta1) * radius, 0];
+    const p1 = [ Math.cos(theta2) * radius, Math.sin(theta2) * radius, 0];
+    addTri(p0, p1, top);
+    addTri(p1, p0, origin);
+  }
 
   return data;
 }
@@ -226,6 +242,29 @@ export function generateCylinder(sides = 16, radius = 1, height = 1) {
   };
 
   // TODO: Implement cylinder generation
+  const addTri = (p0, p1, p2) => {
+    data.vertices.push(...p0, ...p1, ...p2);
+    data.vertexNormals.push(...p0, ...p1, ...p2);
+  };
+  const addQuad = (p0, p1, p2, p3) => {
+    addTri(p0, p1, p2);
+    addTri(p0, p2, p3);
+  };
+
+  const origin = [0, 0, 0];
+  const top = [0, 0, height];
+
+  for (let i = 0; i < sides; i++) {
+    const theta1 = i / sides * Math.PI * 2;
+    const theta2 = (i + 1) / sides * Math.PI * 2;
+    const p0 = [ Math.cos(theta1) * radius, Math.sin(theta1) * radius, 0];
+    const p1 = [ Math.cos(theta2) * radius, Math.sin(theta2) * radius, 0];
+    const p2 = [ Math.cos(theta2) * radius, Math.sin(theta2) * radius, height];
+    const p3 = [ Math.cos(theta1) * radius, Math.sin(theta1) * radius, height];
+    addQuad(p0, p1, p2, p3);
+    addTri(p1, p0, origin);
+    addTri(p3, p2, top);
+  }
 
   return data;
 }

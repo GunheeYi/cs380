@@ -40,19 +40,29 @@ export default class Assignment2 extends cs380.BaseApp {
     // CODE START -------------------------------
     this.objects = [];
 
-    const sphereMeshData = cs380.primitives.generateSphere(100, 20, 1);
+    const sphereMeshData = cs380.primitives.generateSphere(8, 16, 1);
     const sphereMesh = cs380.Mesh.fromData(sphereMeshData);
+
+    const coneMeshData = cs380.primitives.generateCone(8, 0.5, 1);
+    const coneMesh = cs380.Mesh.fromData(coneMeshData);
+
+    const cylinderMeshData = cs380.primitives.generateCylinder(16, 1, 1);
+    const cylinderMesh = cs380.Mesh.fromData(cylinderMeshData);
     
     let s = {};
-    s.pickableObject = new cs380.PickableObject(
-      sphereMesh,
-      simpleShader,
-      pickingShader,
-      2
-    );
+    s.pickableObject = new cs380.PickableObject( sphereMesh, simpleShader, pickingShader, 2);
     s.pickableObject.uniforms.mainColor = vec3.fromValues(1, 0, 0);
+    // this.objects.push(s);
+
+    s = {};
+    s.pickableObject = new cs380.PickableObject(coneMesh, simpleShader, pickingShader, 3);
+    s.pickableObject.uniforms.mainColor = vec3.fromValues(0, 1, 0);
+    // this.objects.push(s);
+
+    s = {};
+    s.pickableObject = new cs380.PickableObject(cylinderMesh, simpleShader, pickingShader, 4);
+    s.pickableObject.uniforms.mainColor = vec3.fromValues(0, 0, 1);
     this.objects.push(s);
-    console.log(this.objects)
 
     // Event listener for interactions
     this.handleKeyDown = (e) => {
