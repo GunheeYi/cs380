@@ -39,12 +39,19 @@ export default class Lab6App extends cs380.BaseApp {
     const sphereMesh = cs380.Mesh.fromData(sphereMeshData);
 
     // TODO: import a mesh model
+    const meshLoaderResult = await cs380.MeshLoader.load({
+      bunny: "resources/models/bunny.obj",
+    });
+    const bunnyMesh = cs380.Mesh.fromData(meshLoaderResult.bunny);
 
-    const simpleShader = await cs380.buildShader(SimpleShader);
     // TODO: import BlinnPhongShader
+    // const simpleShader = await cs380.buildShader(SimpleShader);
+    const blinnPhongShader = await cs380.buildShader(BlinnPhongShader);
 
     this.thingsToClear.push(sphereMesh);
-    this.thingsToClear.push(simpleShader);
+    this.thingsToClear.push(bunnyMesh);
+    // this.thingsToClear.push(simpleShader);
+    this.thingsToClear.push(blinnPhongShader);
     this.thingsToClear.push(/*mesh & shader...*/);
     
     // initialize picking shader & buffer
@@ -72,7 +79,8 @@ export default class Lab6App extends cs380.BaseApp {
     // initialize a sphere Object
     this.sphere = new cs380.PickableObject(
         sphereMesh, 
-        simpleShader,
+        // simpleShader,
+        blinnPhongShader,
         pickingShader,
         1
     );
@@ -81,6 +89,17 @@ export default class Lab6App extends cs380.BaseApp {
     this.sphere.uniforms.lights = this.lights; 
 
     // TODO: initialize PickableObject or RenderObject for the imported model
+    this.bunny = new cs380.PickableObject(
+      bunnyMesh, 
+      // simpleShader,
+      blinnPhongShader,
+      pickingShader,
+      1
+    );
+    vec3.set(this.bunny.transform.localPosition, 1.2, 0, 0);
+    vec3.set(this.bunny.transform.localScale, 0.7, 0.7, 0.7);
+    this.bunny.uniforms.lights = this.lights; 
+    this.bunny.uniforms.mainColor = vec3.fromValues(1, 0, 0);
     
     // Event listener for interactions
     this.handleMouseDown = (e) => {
@@ -160,6 +179,7 @@ export default class Lab6App extends cs380.BaseApp {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     this.sphere.renderPicking(this.camera);
+    this.bunny.renderPicking(this.camera);
 
     // 2. Render real scene
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -170,5 +190,6 @@ export default class Lab6App extends cs380.BaseApp {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     
     this.sphere.render(this.camera);
+    this.bunny.render(this.camera);
   }
 }
