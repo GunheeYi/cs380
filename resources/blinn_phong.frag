@@ -55,10 +55,26 @@ void main() {
             intensity += lights[i].color * min(max((diffuse + specular) * lights[i].illuminance, 0.0), 1.0);
         }
         else if (lights[i].type == POINT) {
-            continue;
+            vec3 lightPos = (W2C * vec4(lights[i].pos, 1.0)).xyz;
+            vec3 frag2light = lightPos - frag_pos.xyz;
+
+            if (dot(frag2light, frag_normal.xyz) >= 0.0) {
+                float a = 1.0, b = 0.1, c = 1.0;
+                float distance = length(lightPos - frag_pos.xyz);
+                float attenuation = 1.0 / (a + b * distance + c * distance * distance);
+                float toAdd = lights[i].illuminance * attenuation;
+                intensity += lights[i].color * min(max(toAdd, 0.0), 1.0);
+            }
         }
         else if (lights[i].type == SPOTLIGHT) {
-            continue;
+            vec3 lightPos = (W2C * vec4(lights[i].pos, 1.0)).xyz;
+            vec3 lightDir = (W2C * vec4(lights[i].dir, 0.0)).xyz;
+            vec3 frag2light = lightPos - frag_pos.xyz;
+            float angle = acos(dot(normalize(-frag2light), normalize(lightDir)));
+            if (
+                dot(frag2light, frag_normal.xyz) >= 0.0 &&
+                angle <= lights[i].angle
+            ) intensity += lights[i].color * lights[i].illuminance;
         }
         else if (lights[i].type == AMBIENT) {
             // TODO: implement ambient reflection

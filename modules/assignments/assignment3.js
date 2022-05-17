@@ -65,19 +65,37 @@ export default class Assignment3 extends cs380.BaseApp {
     this.lights = [];
     const lightDir = vec3.create();
 
-    const light0 = new Light(); 
-    light0.illuminance = 0.1;
-    light0.type = LightType.AMBIENT;
-    light0.color = vec3.fromValues(1, 0.5, 0.5);
-    this.lights.push(light0);
+    const ambientLight = new Light(); 
+    ambientLight.illuminance = 0.1;
+    ambientLight.type = LightType.AMBIENT;
+    ambientLight.color = vec3.fromValues(1, 0.5, 0.5);
+    this.lights.push(ambientLight);
 
-    const light1 = new Light();
+    const directionalLight = new Light();
     vec3.set(lightDir, -1, -1, -1);
-    light1.illuminance = 0.9;
-    light1.transform.lookAt(lightDir);
-    light1.type = LightType.DIRECTIONAL;
-    light1.color = vec3.fromValues(0.5, 1, 1);
-    this.lights.push(light1);
+    directionalLight.illuminance = 0.9;
+    directionalLight.transform.lookAt(lightDir);
+    directionalLight.type = LightType.DIRECTIONAL;
+    directionalLight.color = vec3.fromValues(0.5, 1, 1);
+    this.lights.push(directionalLight);
+
+    const pointLight = new Light();
+    vec3.set(pointLight.transform.localPosition, 0, 1, 1);
+    pointLight.illuminance = 0.9;
+    pointLight.type = LightType.POINT;
+    pointLight.color = vec3.fromValues(1, 1, 1);
+    this.lights.push(pointLight);
+
+    const spotLight = new Light();
+    vec3.set(spotLight.transform.localPosition, 0, 1, 1);
+    spotLight.illuminance = 0.9;
+    vec3.set(lightDir, 0, -1, -1);
+    spotLight.transform.lookAt(lightDir);
+    spotLight.type = LightType.SPOTLIGHT;
+    spotLight.color = vec3.fromValues(1, 1, 1);
+    spotLight.angle = glMatrix.toRadian(10);
+    spotLight.angleSmoothness = 10;
+    this.lights.push(spotLight);
 
     this.pressed = {};
 
@@ -260,6 +278,14 @@ export default class Assignment3 extends cs380.BaseApp {
       if (value.parent && this.objects[value.parent]) this.objects[key].transform.setParent(this.objects[value.parent].transform);
       
     }
+
+    const fire = new Light();
+    fire.transform.setParent(this.objects['leftHand'].transform);
+    vec3.set(fire.transform.localPosition, 0, 0.3, 0);
+    fire.illuminance = 0.9;
+    fire.type = LightType.POINT;
+    fire.color = vec3.fromValues(1, 0, 0);
+    this.lights.push(fire);
 
     quat.setAxisAngle( this.objects.upperBody.transform.localRotation, vec3.fromValues(0, 0, 1), 180 * DEG );
     vec3.set(this.objects.upperBody.transform.localPosition, 0, 1, 0);
