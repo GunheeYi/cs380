@@ -54,11 +54,9 @@ export default class Assignment3 extends cs380.BaseApp {
 
     // initialize picking shader & buffer
     const pickingShader = await cs380.buildShader(cs380.PickingShader);
-    // const simpleShader = await cs380.buildShader(SimpleShader);
     const blinnPhongShader = await cs380.buildShader(BlinnPhongShader);
     this.pickingBuffer = new cs380.PickingBuffer();
     this.pickingBuffer.initialize(width, height);
-    // this.thingsToClear.push(pickingShader, simpleShader, this.pickingBuffer);
     this.thingsToClear.push(pickingShader, blinnPhongShader, this.pickingBuffer);
 
     // CODE START -------------------------------
@@ -70,6 +68,7 @@ export default class Assignment3 extends cs380.BaseApp {
     const light0 = new Light(); 
     light0.illuminance = 0.1;
     light0.type = LightType.AMBIENT;
+    light0.color = vec3.fromValues(1, 0.5, 0.5);
     this.lights.push(light0);
 
     const light1 = new Light();
@@ -77,6 +76,7 @@ export default class Assignment3 extends cs380.BaseApp {
     light1.illuminance = 0.9;
     light1.transform.lookAt(lightDir);
     light1.type = LightType.DIRECTIONAL;
+    light1.color = vec3.fromValues(0.5, 1, 1);
     this.lights.push(light1);
 
     this.pressed = {};
@@ -250,14 +250,10 @@ export default class Assignment3 extends cs380.BaseApp {
     for (const [key, value] of Object.entries(this.recipes)) {
       this.objects[key] = new cs380.PickableObject(
         cs380.Mesh.fromData(value.meshData),
-        // simpleShader,
         blinnPhongShader,
         pickingShader,
         value.id
       );
-      // this.objects[key].transform.localPosition = [0, 0, 0];
-      // this.objects[key].transform.localScale = [1, 1, 1];
-      // this.objects[key].transform.localRotation = [0, 0, 0];
       this.objects[key].uniforms.mainColor = vec3.fromValues(...value.color);
       this.objects[key].uniforms.lights = this.lights;
 
@@ -302,6 +298,20 @@ export default class Assignment3 extends cs380.BaseApp {
     vec3.set(this.objects.rightLowerLeg.transform.localPosition, 0, upperLegRadius-lowerLegRadius, 0);
     vec3.set(this.objects.rightBootNeck.transform.localPosition, 0, lowerLegLength-bootsHeight, 0);
     vec3.set(this.objects.rightBoot.transform.localPosition, 0, lowerLegLength-bootsRadius, bootsLength-lowerLegRadius);
+
+    const floorMeshData = cs380.primitives.generateCube();
+    const floorMesh = cs380.Mesh.fromData(floorMeshData);
+    this.thingsToClear.push(floorMesh);
+    this.floor = new cs380.PickableObject(
+      floorMesh, 
+      blinnPhongShader,
+      pickingShader,
+      101
+    );
+
+    vec3.set(this.floor.transform.localPosition, 0, -2, 0);
+    vec3.set(this.floor.transform.localScale, 10, 0.05, 10);
+    this.floor.uniforms.lights = this.lights; 
    
     // Event listener for interactions
     this.handleKeyDown = (e) => {
@@ -438,6 +448,7 @@ export default class Assignment3 extends cs380.BaseApp {
     for (const o of Object.values(this.objects)) {
       o.renderPicking(this.camera);
     }
+    this.floor.renderPicking(this.camera);
 
     // Render real scene
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -451,5 +462,6 @@ export default class Assignment3 extends cs380.BaseApp {
     for (const o of Object.values(this.objects)) {
       o.render(this.camera);
     }
+    this.floor.render(this.camera);
   }
 }

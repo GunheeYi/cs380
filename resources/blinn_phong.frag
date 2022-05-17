@@ -21,6 +21,7 @@ struct Light {
     vec3 pos;
     vec3 dir;
     float illuminance;
+    vec3 color;
     float angle;
     float angleSmoothness;
 };
@@ -50,9 +51,8 @@ void main() {
             vec3 N = normalize(frag_normal.xyz);
             vec3 H = normalize(L + V);
             float diffuse = max(dot(N, L), 0.0);
-            // float diffuse = 0.0;
             float specular = pow(max(dot(N, H), 0.0), shininess);
-            intensity += min(max((diffuse + specular) * lights[i].illuminance, 0.0), 1.0);
+            intensity += lights[i].color * min(max((diffuse + specular) * lights[i].illuminance, 0.0), 1.0);
         }
         else if (lights[i].type == POINT) {
             continue;
@@ -62,11 +62,9 @@ void main() {
         }
         else if (lights[i].type == AMBIENT) {
             // TODO: implement ambient reflection
-            intensity += lights[i].illuminance;
+            intensity += lights[i].color * lights[i].illuminance;
         }
     }
-
-    // intensity = min(max(intensity, 0.0), 1.0);
     
     output_color = vec4(mainColor * intensity, 1.0);
     

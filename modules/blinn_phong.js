@@ -17,6 +17,7 @@ export class Light {
     this.type = LightType.DIRECTIONAL;
     this.enabled = true;
     this.illuminance = 1;
+    this.color = vec3.fromValues(1, 1, 1);
     this.angle = Math.PI / 6;
     this.angleSmoothness = 0.1;
     this._v3 = vec3.create();
@@ -70,7 +71,7 @@ export class BlinnPhongShader extends cs380.BaseShader {
 
     if ('lights' in kv) {
       const lights = kv['lights'];
-      const lightProperties = ['type', 'enabled', 'pos', 'illuminance', 'dir', 'angle', 'angleSmoothness'];
+      const lightProperties = ['type', 'enabled', 'pos', 'illuminance', 'color', 'dir', 'angle', 'angleSmoothness'];
       const numLights = Math.min(lights.length, 10);
       gl.uniform1i(this.uniformLocations.numLights, numLights);
       for (let i=0; i < numLights; i++) {
@@ -86,6 +87,7 @@ export class BlinnPhongShader extends cs380.BaseShader {
         gl.uniform3f(locations.pos, ...light.pos);
         gl.uniform3f(locations.dir, ...light.dir);
         gl.uniform1f(locations.illuminance, light.illuminance);
+        gl.uniform3f(locations.color, ...light.color);
         gl.uniform1f(locations.angle, light.angle);
         gl.uniform1f(locations.angleSmoothness, light.angleSmoothness);
       }
