@@ -35,7 +35,7 @@ float random(vec3 seed) {
 
 void main() {
     mat4 W2C = inverse(cameraTransform);
-    float intensity = 0.0;
+    vec3 intensity = vec3(0.0, 0.0, 0.0);
     
     vec3 N = normalize(frag_normal.xyz);
     
@@ -66,7 +66,7 @@ void main() {
         }
     }
 
-    intensity = min(max(intensity, 0.0), 1.0);
+    // intensity = min(max(intensity, 0.0), 1.0);
     
     output_color = vec4(mainColor * intensity, 1.0);
     
