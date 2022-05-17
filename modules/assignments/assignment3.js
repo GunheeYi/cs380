@@ -44,14 +44,41 @@ export default class Assignment3 extends cs380.BaseApp {
 
     this.thingsToClear = [];
 
+    // SimpleOrbitControl
+    const orbitControlCenter = vec3.fromValues(0, 0, 0);
+    this.simpleOrbitControl = new cs380.utils.SimpleOrbitControl(
+      this.camera,
+      orbitControlCenter
+    );
+    this.thingsToClear.push(this.simpleOrbitControl);
+
     // initialize picking shader & buffer
     const pickingShader = await cs380.buildShader(cs380.PickingShader);
-    const simpleShader = await cs380.buildShader(SimpleShader);
+    // const simpleShader = await cs380.buildShader(SimpleShader);
+    const blinnPhongShader = await cs380.buildShader(BlinnPhongShader);
     this.pickingBuffer = new cs380.PickingBuffer();
     this.pickingBuffer.initialize(width, height);
-    this.thingsToClear.push(pickingShader, simpleShader, this.pickingBuffer);
+    // this.thingsToClear.push(pickingShader, simpleShader, this.pickingBuffer);
+    this.thingsToClear.push(pickingShader, blinnPhongShader, this.pickingBuffer);
 
     // CODE START -------------------------------
+
+    // initialize light sources
+    this.lights = [];
+    const lightDir = vec3.create();
+
+    const light0 = new Light(); 
+    light0.illuminance = 0.1;
+    light0.type = LightType.AMBIENT;
+    this.lights.push(light0);
+
+    const light1 = new Light();
+    vec3.set(lightDir, -1, -1, -1);
+    light1.illuminance = 0.9;
+    light1.transform.lookAt(lightDir);
+    light1.type = LightType.DIRECTIONAL;
+    this.lights.push(light1);
+
     this.pressed = {};
 
     this.recipes = {
@@ -223,7 +250,8 @@ export default class Assignment3 extends cs380.BaseApp {
     for (const [key, value] of Object.entries(this.recipes)) {
       this.objects[key] = new cs380.PickableObject(
         cs380.Mesh.fromData(value.meshData),
-        simpleShader,
+        // simpleShader,
+        blinnPhongShader,
         pickingShader,
         value.id
       );
@@ -231,6 +259,7 @@ export default class Assignment3 extends cs380.BaseApp {
       // this.objects[key].transform.localScale = [1, 1, 1];
       // this.objects[key].transform.localRotation = [0, 0, 0];
       this.objects[key].uniforms.mainColor = vec3.fromValues(...value.color);
+      this.objects[key].uniforms.lights = this.lights;
 
       if (value.parent && this.objects[value.parent]) this.objects[key].transform.setParent(this.objects[value.parent].transform);
       
@@ -273,9 +302,6 @@ export default class Assignment3 extends cs380.BaseApp {
     vec3.set(this.objects.rightLowerLeg.transform.localPosition, 0, upperLegRadius-lowerLegRadius, 0);
     vec3.set(this.objects.rightBootNeck.transform.localPosition, 0, lowerLegLength-bootsHeight, 0);
     vec3.set(this.objects.rightBoot.transform.localPosition, 0, lowerLegLength-bootsRadius, bootsLength-lowerLegRadius);
-    
-    // initialize light sources
-    this.lights = [];
    
     // Event listener for interactions
     this.handleKeyDown = (e) => {
@@ -353,7 +379,7 @@ export default class Assignment3 extends cs380.BaseApp {
 
   update(elapsed, dt) {
     // Updates before rendering here
-    // this.simpleOrbitControl.update(dt);
+    this.simpleOrbitControl.update(dt);
 
     const camMoveSpeed = 1;
     const camRotSpeed = 1;
@@ -365,40 +391,40 @@ export default class Assignment3 extends cs380.BaseApp {
     const up = [CT.worldMatrix[1], CT.worldMatrix[5], CT.worldMatrix[9]];
     const forward = [CT.worldMatrix[2], CT.worldMatrix[6], -CT.worldMatrix[10]];
     
-    let dr = [0, 0, 0];
-    if (this.pressed.arrowleft) dr = right.map(_ => - _ * camMoveSpeed * dt);
-    if (this.pressed.arrowright) dr = right.map(_ => _ * camMoveSpeed * dt);
-    if (this.pressed.space) dr = up.map(_ => _ * camMoveSpeed * dt);
-    if (this.pressed.shift) dr = up.map(_ => - _ * camMoveSpeed * dt);
-    if (this.pressed.arrowup) dr = forward.map(_ => _ * camMoveSpeed * dt);
-    if (this.pressed.arrowdown) dr = forward.map(_ => - _ * camMoveSpeed * dt);
-    vec3.add(CT.localPosition, CT.localPosition, dr);
+    // let dr = [0, 0, 0];
+    // if (this.pressed.arrowleft) dr = right.map(_ => - _ * camMoveSpeed * dt);
+    // if (this.pressed.arrowright) dr = right.map(_ => _ * camMoveSpeed * dt);
+    // if (this.pressed.space) dr = up.map(_ => _ * camMoveSpeed * dt);
+    // if (this.pressed.shift) dr = up.map(_ => - _ * camMoveSpeed * dt);
+    // if (this.pressed.arrowup) dr = forward.map(_ => _ * camMoveSpeed * dt);
+    // if (this.pressed.arrowdown) dr = forward.map(_ => - _ * camMoveSpeed * dt);
+    // vec3.add(CT.localPosition, CT.localPosition, dr);
     
-    if (this.pressed.a || this.pressed.d || this.pressed.w || this.pressed.s || this.pressed.q || this.pressed.e) {
-      let r = quat.create();
-      if (this.pressed.a) quat.setAxisAngle(r, up, camRotSpeed * dt);
-      if (this.pressed.d) quat.setAxisAngle(r, up, -camRotSpeed * dt);
-      if (this.pressed.w) quat.setAxisAngle(r, right, camRotSpeed * dt);
-      if (this.pressed.s) quat.setAxisAngle(r, right, -camRotSpeed * dt);
-      if (this.pressed.q) quat.setAxisAngle(r, forward, -camRotSpeed * dt);
-      if (this.pressed.e) quat.setAxisAngle(r, forward, camRotSpeed * dt);
-      quat.multiply(CT.localRotation, r, CT.localRotation);
-    }
+    // if (this.pressed.a || this.pressed.d || this.pressed.w || this.pressed.s || this.pressed.q || this.pressed.e) {
+    //   let r = quat.create();
+    //   if (this.pressed.a) quat.setAxisAngle(r, up, camRotSpeed * dt);
+    //   if (this.pressed.d) quat.setAxisAngle(r, up, -camRotSpeed * dt);
+    //   if (this.pressed.w) quat.setAxisAngle(r, right, camRotSpeed * dt);
+    //   if (this.pressed.s) quat.setAxisAngle(r, right, -camRotSpeed * dt);
+    //   if (this.pressed.q) quat.setAxisAngle(r, forward, -camRotSpeed * dt);
+    //   if (this.pressed.e) quat.setAxisAngle(r, forward, camRotSpeed * dt);
+    //   quat.multiply(CT.localRotation, r, CT.localRotation);
+    // }
     
-    if (this.pressed.t) quat.rotateZ(this.objects.leftUpperArm.transform.localRotation, this.objects.leftUpperArm.transform.localRotation, -partRotSpeed * dt);
-    if (this.pressed.y) quat.rotateZ(this.objects.leftUpperArm.transform.localRotation, this.objects.leftUpperArm.transform.localRotation, partRotSpeed * dt);
-    if (this.pressed.u) quat.rotateZ(this.objects.leftLowerArm.transform.localRotation, this.objects.leftLowerArm.transform.localRotation, -partRotSpeed * dt);
-    if (this.pressed.i) quat.rotateZ(this.objects.leftLowerArm.transform.localRotation, this.objects.leftLowerArm.transform.localRotation, partRotSpeed * dt);
-    if (this.pressed.o) quat.rotateZ(this.objects.rightUpperArm.transform.localRotation, this.objects.rightUpperArm.transform.localRotation, -partRotSpeed * dt);
-    if (this.pressed.p) quat.rotateZ(this.objects.rightUpperArm.transform.localRotation, this.objects.rightUpperArm.transform.localRotation, partRotSpeed * dt);
-    if (this.pressed['[']) quat.rotateZ(this.objects.rightLowerArm.transform.localRotation, this.objects.rightLowerArm.transform.localRotation, -partRotSpeed * dt);
-    if (this.pressed[']']) quat.rotateZ(this.objects.rightLowerArm.transform.localRotation, this.objects.rightLowerArm.transform.localRotation, partRotSpeed * dt);
-    if (this.pressed.f) quat.rotateZ(this.objects.leftUpperLeg.transform.localRotation, this.objects.leftUpperLeg.transform.localRotation, -partRotSpeed * dt);
-    if (this.pressed.g) quat.rotateZ(this.objects.leftUpperLeg.transform.localRotation, this.objects.leftUpperLeg.transform.localRotation, partRotSpeed * dt);
-    if (this.pressed.h) quat.rotateZ(this.objects.leftLowerLeg.transform.localRotation, this.objects.leftLowerLeg.transform.localRotation, -partRotSpeed * dt);
-    if (this.pressed.j) quat.rotateZ(this.objects.leftLowerLeg.transform.localRotation, this.objects.leftLowerLeg.transform.localRotation, partRotSpeed * dt);
-    if (this.pressed.k) quat.rotateZ(this.objects.body.transform.localRotation, this.objects.body.transform.localRotation, partRotSpeed * dt);
-    if (this.pressed.l) quat.rotateZ(this.objects.body.transform.localRotation, this.objects.body.transform.localRotation, -partRotSpeed * dt);
+    // if (this.pressed.t) quat.rotateZ(this.objects.leftUpperArm.transform.localRotation, this.objects.leftUpperArm.transform.localRotation, -partRotSpeed * dt);
+    // if (this.pressed.y) quat.rotateZ(this.objects.leftUpperArm.transform.localRotation, this.objects.leftUpperArm.transform.localRotation, partRotSpeed * dt);
+    // if (this.pressed.u) quat.rotateZ(this.objects.leftLowerArm.transform.localRotation, this.objects.leftLowerArm.transform.localRotation, -partRotSpeed * dt);
+    // if (this.pressed.i) quat.rotateZ(this.objects.leftLowerArm.transform.localRotation, this.objects.leftLowerArm.transform.localRotation, partRotSpeed * dt);
+    // if (this.pressed.o) quat.rotateZ(this.objects.rightUpperArm.transform.localRotation, this.objects.rightUpperArm.transform.localRotation, -partRotSpeed * dt);
+    // if (this.pressed.p) quat.rotateZ(this.objects.rightUpperArm.transform.localRotation, this.objects.rightUpperArm.transform.localRotation, partRotSpeed * dt);
+    // if (this.pressed['[']) quat.rotateZ(this.objects.rightLowerArm.transform.localRotation, this.objects.rightLowerArm.transform.localRotation, -partRotSpeed * dt);
+    // if (this.pressed[']']) quat.rotateZ(this.objects.rightLowerArm.transform.localRotation, this.objects.rightLowerArm.transform.localRotation, partRotSpeed * dt);
+    // if (this.pressed.f) quat.rotateZ(this.objects.leftUpperLeg.transform.localRotation, this.objects.leftUpperLeg.transform.localRotation, -partRotSpeed * dt);
+    // if (this.pressed.g) quat.rotateZ(this.objects.leftUpperLeg.transform.localRotation, this.objects.leftUpperLeg.transform.localRotation, partRotSpeed * dt);
+    // if (this.pressed.h) quat.rotateZ(this.objects.leftLowerLeg.transform.localRotation, this.objects.leftLowerLeg.transform.localRotation, -partRotSpeed * dt);
+    // if (this.pressed.j) quat.rotateZ(this.objects.leftLowerLeg.transform.localRotation, this.objects.leftLowerLeg.transform.localRotation, partRotSpeed * dt);
+    // if (this.pressed.k) quat.rotateZ(this.objects.body.transform.localRotation, this.objects.body.transform.localRotation, partRotSpeed * dt);
+    // if (this.pressed.l) quat.rotateZ(this.objects.body.transform.localRotation, this.objects.body.transform.localRotation, -partRotSpeed * dt);
 
     // Render picking information first
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.pickingBuffer.fbo);
