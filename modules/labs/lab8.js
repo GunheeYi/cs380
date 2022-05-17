@@ -119,7 +119,19 @@ export default class Lab8App extends cs380.BaseApp {
     vec3.set(this.cube.transform.localPosition, 0, 0, 0);
 
     // TODO: create 'RenderObejct this.bunny' with 'textureShader and 'uvCheckerTexture' tecture.
+    const meshLoaderResult = await cs380.MeshLoader.load({
+      bunny: "resources/models/bunny.obj",
+    });
+    const bunnyMesh = cs380.Mesh.fromData(meshLoaderResult.bunny);
+    this.bunny = new cs380.RenderObject(bunnyMesh, textureShader);
+    this.thingsToClear.push(bunnyMesh);
 
+    vec3.set(this.bunny.transform.localScale, 0.8, 0.8, 0.8);
+    vec3.set(this.cube.transform.localPosition, 0.8, 0, 0);
+    
+    vec3.set(this.bunny.transform.localScale, 0.5, 0.5, 0.5);
+    vec3.set(this.bunny.transform.localPosition, -0.9, 0, 0);
+    
   }
 
   finalize() {
@@ -145,6 +157,6 @@ export default class Lab8App extends cs380.BaseApp {
     this.cube.render(this.camera);
 
     //TODO: render this.bunny here
-
+    this.bunny.render(this.camera);
   }
 }
