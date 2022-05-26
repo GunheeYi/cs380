@@ -4,7 +4,8 @@ import { vec3, mat4, quat, glMatrix } from "../cs380/gl-matrix.js";
 import * as cs380 from "../cs380/cs380.js";
 
 import { SimpleShader } from "../simple_shader.js";
-import { LightType, Light, BlinnPhongShader } from "../blinn_phong.js";
+import { LightType, Light, } from "../blinn_phong.js";
+import { CustomBlinnPhongShader } from "../custom_blinn_phong.js";
 
 const DEG = Math.PI / 180;
 
@@ -54,48 +55,12 @@ export default class Assignment3 extends cs380.BaseApp {
 
     // initialize picking shader & buffer
     const pickingShader = await cs380.buildShader(cs380.PickingShader);
-    const blinnPhongShader = await cs380.buildShader(BlinnPhongShader);
+    const customBlinnPhongShader = await cs380.buildShader(CustomBlinnPhongShader);
     this.pickingBuffer = new cs380.PickingBuffer();
     this.pickingBuffer.initialize(width, height);
-    this.thingsToClear.push(pickingShader, blinnPhongShader, this.pickingBuffer);
+    this.thingsToClear.push(pickingShader, customBlinnPhongShader, this.pickingBuffer);
 
     // CODE START -------------------------------
-
-    // initialize light sources
-    this.lights = [];
-    const lightDir = vec3.create();
-
-    const ambientLight = new Light(); 
-    ambientLight.illuminance = 0.1;
-    ambientLight.type = LightType.AMBIENT;
-    ambientLight.color = vec3.fromValues(1, 0.5, 0.5);
-    this.lights.push(ambientLight);
-
-    const directionalLight = new Light();
-    vec3.set(lightDir, -1, -1, -1);
-    directionalLight.illuminance = 0.9;
-    directionalLight.transform.lookAt(lightDir);
-    directionalLight.type = LightType.DIRECTIONAL;
-    directionalLight.color = vec3.fromValues(0.5, 1, 1);
-    this.lights.push(directionalLight);
-
-    const pointLight = new Light();
-    vec3.set(pointLight.transform.localPosition, 0, 1, 1);
-    pointLight.illuminance = 0.9;
-    pointLight.type = LightType.POINT;
-    pointLight.color = vec3.fromValues(1, 1, 1);
-    this.lights.push(pointLight);
-
-    const spotLight = new Light();
-    vec3.set(spotLight.transform.localPosition, 0, 1, 1);
-    spotLight.illuminance = 0.9;
-    vec3.set(lightDir, 0, -1, -1);
-    spotLight.transform.lookAt(lightDir);
-    spotLight.type = LightType.SPOTLIGHT;
-    spotLight.color = vec3.fromValues(1, 1, 1);
-    spotLight.angle = glMatrix.toRadian(10);
-    spotLight.angleSmoothness = 10;
-    this.lights.push(spotLight);
 
     this.pressed = {};
 
@@ -128,7 +93,7 @@ export default class Assignment3 extends cs380.BaseApp {
         id: 5,
         meshData: cs380.primitives.generateEllipsoid(32, 32, 0.25, 0.28, 0.25),
         parent: "neck",
-        color: flesh,
+        color: flesh
       },
       leftEye: {
         id: 6,
@@ -268,24 +233,64 @@ export default class Assignment3 extends cs380.BaseApp {
     for (const [key, value] of Object.entries(this.recipes)) {
       this.objects[key] = new cs380.PickableObject(
         cs380.Mesh.fromData(value.meshData),
-        blinnPhongShader,
+        customBlinnPhongShader,
         pickingShader,
         value.id
       );
       this.objects[key].uniforms.mainColor = vec3.fromValues(...value.color);
-      this.objects[key].uniforms.lights = this.lights;
+      this.objects[key].uniforms.reflectivity = [1, 1, 1];
 
       if (value.parent && this.objects[value.parent]) this.objects[key].transform.setParent(this.objects[value.parent].transform);
       
     }
 
-    const fire = new Light();
-    fire.transform.setParent(this.objects['leftHand'].transform);
-    vec3.set(fire.transform.localPosition, 0, 0.3, 0);
-    fire.illuminance = 0.9;
-    fire.type = LightType.POINT;
-    fire.color = vec3.fromValues(1, 0, 0);
-    this.lights.push(fire);
+    this.objects['head'].uniforms.reflectivity = [1, 0, 0];
+
+    // initialize light sources
+    this.lights = [];
+    const lightDir = vec3.create();
+
+    this.ambientLight = new Light(); 
+    this.ambientLight.illuminance = 0.1;
+    this.ambientLight.type = LightType.AMBIENT;
+    this.ambientLight.color = vec3.fromValues(1, 1, 1);
+    this.lights.push(this.ambientLight);
+
+    this.directionalLight = new Light();
+    vec3.set(lightDir, -1, -1, -1);
+    this.directionalLight.illuminance = 0.9;
+    this.directionalLight.transform.lookAt(lightDir);
+    this.directionalLight.type = LightType.DIRECTIONAL;
+    this.directionalLight.color = vec3.fromValues(1, 0.5, 0.5);
+    this.lights.push(this.directionalLight);
+
+    this.pointLight = new Light();
+    vec3.set(this.pointLight.transform.localPosition, 0, 1, 1);
+    this.pointLight.illuminance = 0.9;
+    this.pointLight.type = LightType.POINT;
+    this.pointLight.color = vec3.fromValues(0.5, 1, 0.5);
+    this.lights.push(this.pointLight);
+
+    this.spotLight = new Light();
+    vec3.set(this.spotLight.transform.localPosition, 0, 1, 1);
+    this.spotLight.illuminance = 0.9;
+    vec3.set(lightDir, 0, -1, -1);
+    this.spotLight.transform.lookAt(lightDir);
+    this.spotLight.type = LightType.SPOTLIGHT;
+    this.spotLight.color = vec3.fromValues(0.5, 0.5, 1);
+    this.spotLight.angle = glMatrix.toRadian(10);
+    this.spotLight.angleSmoothness = 100;
+    this.lights.push(this.spotLight);
+
+    this.fire = new Light();
+    this.fire.transform.setParent(this.objects['leftHand'].transform);
+    vec3.set(this.fire.transform.localPosition, 0, 0.3, 0);
+    this.fire.illuminance = 0.9;
+    this.fire.type = LightType.POINT;
+    this.fire.color = vec3.fromValues(1, 0, 0);
+    this.lights.push(this.fire);
+
+    for (const [key, _] of Object.entries(this.recipes)) this.objects[key].uniforms.lights = this.lights;
 
     quat.setAxisAngle( this.objects.upperBody.transform.localRotation, vec3.fromValues(0, 0, 1), 180 * DEG );
     vec3.set(this.objects.upperBody.transform.localPosition, 0, 1, 0);
@@ -330,7 +335,7 @@ export default class Assignment3 extends cs380.BaseApp {
     this.thingsToClear.push(floorMesh);
     this.floor = new cs380.PickableObject(
       floorMesh, 
-      blinnPhongShader,
+      customBlinnPhongShader,
       pickingShader,
       101
     );
@@ -355,9 +360,46 @@ export default class Assignment3 extends cs380.BaseApp {
     };
 
     document.addEventListener("keydown", this.handleKeyDown);
+    document.addEventListener("keyup", this.handleKeyUp);
     gl.canvas.addEventListener("mousedown", this.handleMouseDown);
 
     document.getElementById("settings").innerHTML = `
+      <h3>Ambient Light</h3>
+      <label for="ambient-illuminance">illuminance</label>
+      <input type="range" min=0 max=0.3 value=0.1 step=0.01 id="ambient-illuminance">
+
+      <h3>Directional Light</h3>
+      <label for="directional-illuminance">illuminance</label>
+      <input type="range" min=0 max=1 value=1 step=0.01 id="directional-illuminance"><br/>
+
+      <h3>Point Light</h3>
+      <label for="point-illuminance">illuminance</label>
+      <input type="range" min=0 max=1 value=1 step=0.01 id="point-illuminance"><br/>
+      <label for="point-pos-x">pos-x</label>
+      <input type="range" min=-2 max=2 value=0 step=0.01 id="point-pos-x"><br/>
+      <label for="point-pos-y">pos-y</label>
+      <input type="range" min=-2 max=2 value=1 step=0.01 id="point-pos-y"><br/>
+      <label for="point-pos-z">pos-z</label>
+      <input type="range" min=-2 max=2 value=1 step=0.01 id="point-pos-z">
+
+      <h3>Spotlight</h3>
+      <label for="spot-illuminance">illuminance</label>
+      <input type="range" min=0 max=1 value=1 step=0.01 id="spot-illuminance"><br/>
+      <label for="spot-pos-x">pos-x</label>
+      <input type="range" min=-2 max=2 value=0 step=0.01 id="spot-pos-x"><br/>
+      <label for="spot-pos-y">pos-y</label>
+      <input type="range" min=-2 max=2 value=1 step=0.01 id="spot-pos-y"><br/>
+      <label for="spot-pos-z">pos-z</label>
+      <input type="range" min=-2 max=2 value=1 step=0.01 id="spot-pos-z"><br/>
+      <label for="spot-angle">angle</label>
+      <input type="range" min=1 max=30 value=10 step=0.1 id="spot-angle"><br/>
+      <label for="spot-angle-smoothness">angle-smoothness</label>
+      <input type="range" min=1 max=200 value=100 step=1 id="spot-angle-smoothness">
+
+      <h3>Fire</h3>
+      <label for="fire-illuminance">illuminance</label>
+      <input type="range" min=0 max=1 value=1 step=0.01 id="fire-illuminance"><br/>
+
       <h3>Basic requirements</h3>
       <ul>
         <li>Implement point light, and spotlight [2 pts]</li>
@@ -369,6 +411,35 @@ export default class Assignment3 extends cs380.BaseApp {
       Use your creativity (animation, interaction, etc.) to make each light source is recognized respectively. <br/>
       <strong>Start early!</strong>
     `;
+
+    // Setup GUIs
+    const setInputBehavior = (id, onchange, initialize, callback) => {
+      const input = document.getElementById(id);
+      const callbackWrapper = 
+          () => callback(input.value); // NOTE: must parse to int/float for numeric values
+      if (onchange) {
+        input.onchange = callbackWrapper;
+        if (initialize) input.onchange();
+      } else {
+        input.oninput = callbackWrapper;
+        if (initialize) input.oninput();
+      }
+    }
+
+    setInputBehavior('ambient-illuminance', true, true, (val) => { this.ambientLight.illuminance=val;});
+    setInputBehavior('directional-illuminance', true, true, (val) => { this.directionalLight.illuminance=val;});
+    setInputBehavior('point-illuminance', true, true, (val) => { this.pointLight.illuminance=val;});
+    setInputBehavior('point-pos-x', true, true, (val) => { this.pointLight.transform.localPosition[0]=val; });
+    setInputBehavior('point-pos-y', true, true, (val) => { this.pointLight.transform.localPosition[1]=val; });
+    setInputBehavior('point-pos-z', true, true, (val) => { this.pointLight.transform.localPosition[2]=val; });
+    setInputBehavior('spot-illuminance', true, true, (val) => { this.spotLight.illuminance=val; });
+    setInputBehavior('spot-pos-x', true, true, (val) => { this.spotLight.transform.localPosition[0]=val; });
+    setInputBehavior('spot-pos-y', true, true, (val) => { this.spotLight.transform.localPosition[1]=val; });
+    setInputBehavior('spot-pos-z', true, true, (val) => { this.spotLight.transform.localPosition[2]=val; });
+    setInputBehavior('spot-angle', true, true, (val) => { console.log(val);this.spotLight.angle=glMatrix.toRadian(val); });
+    setInputBehavior('spot-angle-smoothness', true, true, (val) => { this.spotLight.angleSmoothness=val; });
+    setInputBehavior('fire-illuminance', true, true, (val) => { this.fire.illuminance=val; });
+
 
     // GL settings
     gl.enable(gl.CULL_FACE);
@@ -409,6 +480,7 @@ export default class Assignment3 extends cs380.BaseApp {
   finalize() {
     // Finalize WebGL objects (mesh, shader, texture, ...)
     document.removeEventListener("keydown", this.handleKeyDown);
+    document.removeEventListener("keyup", this.handleKeyUp);
     gl.canvas.removeEventListener("mousedown", this.handleMouseDown);
     this.thingsToClear.forEach((it) => it.finalize());
   }
@@ -447,20 +519,20 @@ export default class Assignment3 extends cs380.BaseApp {
     //   quat.multiply(CT.localRotation, r, CT.localRotation);
     // }
     
-    // if (this.pressed.t) quat.rotateZ(this.objects.leftUpperArm.transform.localRotation, this.objects.leftUpperArm.transform.localRotation, -partRotSpeed * dt);
-    // if (this.pressed.y) quat.rotateZ(this.objects.leftUpperArm.transform.localRotation, this.objects.leftUpperArm.transform.localRotation, partRotSpeed * dt);
-    // if (this.pressed.u) quat.rotateZ(this.objects.leftLowerArm.transform.localRotation, this.objects.leftLowerArm.transform.localRotation, -partRotSpeed * dt);
-    // if (this.pressed.i) quat.rotateZ(this.objects.leftLowerArm.transform.localRotation, this.objects.leftLowerArm.transform.localRotation, partRotSpeed * dt);
-    // if (this.pressed.o) quat.rotateZ(this.objects.rightUpperArm.transform.localRotation, this.objects.rightUpperArm.transform.localRotation, -partRotSpeed * dt);
-    // if (this.pressed.p) quat.rotateZ(this.objects.rightUpperArm.transform.localRotation, this.objects.rightUpperArm.transform.localRotation, partRotSpeed * dt);
-    // if (this.pressed['[']) quat.rotateZ(this.objects.rightLowerArm.transform.localRotation, this.objects.rightLowerArm.transform.localRotation, -partRotSpeed * dt);
-    // if (this.pressed[']']) quat.rotateZ(this.objects.rightLowerArm.transform.localRotation, this.objects.rightLowerArm.transform.localRotation, partRotSpeed * dt);
-    // if (this.pressed.f) quat.rotateZ(this.objects.leftUpperLeg.transform.localRotation, this.objects.leftUpperLeg.transform.localRotation, -partRotSpeed * dt);
-    // if (this.pressed.g) quat.rotateZ(this.objects.leftUpperLeg.transform.localRotation, this.objects.leftUpperLeg.transform.localRotation, partRotSpeed * dt);
-    // if (this.pressed.h) quat.rotateZ(this.objects.leftLowerLeg.transform.localRotation, this.objects.leftLowerLeg.transform.localRotation, -partRotSpeed * dt);
-    // if (this.pressed.j) quat.rotateZ(this.objects.leftLowerLeg.transform.localRotation, this.objects.leftLowerLeg.transform.localRotation, partRotSpeed * dt);
-    // if (this.pressed.k) quat.rotateZ(this.objects.body.transform.localRotation, this.objects.body.transform.localRotation, partRotSpeed * dt);
-    // if (this.pressed.l) quat.rotateZ(this.objects.body.transform.localRotation, this.objects.body.transform.localRotation, -partRotSpeed * dt);
+    if (this.pressed.t) quat.rotateZ(this.objects.leftUpperArm.transform.localRotation, this.objects.leftUpperArm.transform.localRotation, -partRotSpeed * dt);
+    if (this.pressed.y) quat.rotateZ(this.objects.leftUpperArm.transform.localRotation, this.objects.leftUpperArm.transform.localRotation, partRotSpeed * dt);
+    if (this.pressed.u) quat.rotateZ(this.objects.leftLowerArm.transform.localRotation, this.objects.leftLowerArm.transform.localRotation, -partRotSpeed * dt);
+    if (this.pressed.i) quat.rotateZ(this.objects.leftLowerArm.transform.localRotation, this.objects.leftLowerArm.transform.localRotation, partRotSpeed * dt);
+    if (this.pressed.o) quat.rotateZ(this.objects.rightUpperArm.transform.localRotation, this.objects.rightUpperArm.transform.localRotation, -partRotSpeed * dt);
+    if (this.pressed.p) quat.rotateZ(this.objects.rightUpperArm.transform.localRotation, this.objects.rightUpperArm.transform.localRotation, partRotSpeed * dt);
+    if (this.pressed['[']) quat.rotateZ(this.objects.rightLowerArm.transform.localRotation, this.objects.rightLowerArm.transform.localRotation, -partRotSpeed * dt);
+    if (this.pressed[']']) quat.rotateZ(this.objects.rightLowerArm.transform.localRotation, this.objects.rightLowerArm.transform.localRotation, partRotSpeed * dt);
+    if (this.pressed.f) quat.rotateZ(this.objects.leftUpperLeg.transform.localRotation, this.objects.leftUpperLeg.transform.localRotation, -partRotSpeed * dt);
+    if (this.pressed.g) quat.rotateZ(this.objects.leftUpperLeg.transform.localRotation, this.objects.leftUpperLeg.transform.localRotation, partRotSpeed * dt);
+    if (this.pressed.h) quat.rotateZ(this.objects.leftLowerLeg.transform.localRotation, this.objects.leftLowerLeg.transform.localRotation, -partRotSpeed * dt);
+    if (this.pressed.j) quat.rotateZ(this.objects.leftLowerLeg.transform.localRotation, this.objects.leftLowerLeg.transform.localRotation, partRotSpeed * dt);
+    if (this.pressed.k) quat.rotateZ(this.objects.body.transform.localRotation, this.objects.body.transform.localRotation, partRotSpeed * dt);
+    if (this.pressed.l) quat.rotateZ(this.objects.body.transform.localRotation, this.objects.body.transform.localRotation, -partRotSpeed * dt);
 
     // Render picking information first
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.pickingBuffer.fbo);

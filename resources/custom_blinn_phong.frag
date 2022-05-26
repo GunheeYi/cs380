@@ -14,6 +14,7 @@ out vec4 output_color;
 uniform mat4 cameraTransform;
 
 uniform vec3 mainColor;
+uniform vec3 reflectivity;
 
 struct Light {
     int type;
@@ -52,7 +53,7 @@ void main() {
             vec3 H = normalize(L + V);
             float diffuse = max(dot(N, L), 0.0);
             float specular = pow(max(dot(N, H), 0.0), shininess);
-            intensity += lights[i].color * min(max((diffuse + specular) * lights[i].illuminance, 0.0), 1.0);
+            intensity += lights[i].color * min(max((diffuse + specular) * lights[i].illuminance, 0.0), 1.0) * reflectivity;
         }
         else if (lights[i].type == POINT) {
             vec3 lightPos = (W2C * vec4(lights[i].pos, 1.0)).xyz;
@@ -78,7 +79,7 @@ void main() {
         }
         else if (lights[i].type == AMBIENT) {
             // TODO: implement ambient reflection
-            intensity += lights[i].color * lights[i].illuminance;
+            intensity += lights[i].color * lights[i].illuminance * reflectivity;
         }
     }
     
