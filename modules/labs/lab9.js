@@ -225,6 +225,9 @@ export default class Lab9App extends cs380.BaseApp {
     // TODO: render to texture of plane this.picture using renderImage("put correct variables here").
     // render the objects function to the canvas using renderImage().
     // render the plane this.picture to the canvas.
+    this.renderImage(this.picture.framebuffer.fbo);
+    this.renderImage(this.fbo);
+    this.picture.render(this.camera);
 
   }
   renderScene() {
