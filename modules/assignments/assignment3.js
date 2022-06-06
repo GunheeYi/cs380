@@ -4,8 +4,7 @@ import { vec3, mat4, quat, glMatrix } from "../cs380/gl-matrix.js";
 import * as cs380 from "../cs380/cs380.js";
 
 import { SimpleShader } from "../simple_shader.js";
-import { LightType, Light, } from "../blinn_phong.js";
-import { CustomBlinnPhongShader } from "../custom_blinn_phong.js";
+import { LightType, Light, BlinnPhongShader } from "../blinn_phong.js";
 
 const DEG = Math.PI / 180;
 
@@ -55,10 +54,10 @@ export default class Assignment3 extends cs380.BaseApp {
 
     // initialize picking shader & buffer
     const pickingShader = await cs380.buildShader(cs380.PickingShader);
-    const customBlinnPhongShader = await cs380.buildShader(CustomBlinnPhongShader);
+    const blinnPhongShader = await cs380.buildShader(BlinnPhongShader);
     this.pickingBuffer = new cs380.PickingBuffer();
     this.pickingBuffer.initialize(width, height);
-    this.thingsToClear.push(pickingShader, customBlinnPhongShader, this.pickingBuffer);
+    this.thingsToClear.push(pickingShader, blinnPhongShader, this.pickingBuffer);
 
     // CODE START -------------------------------
 
@@ -87,13 +86,15 @@ export default class Assignment3 extends cs380.BaseApp {
         id: 4,
         meshData: cs380.primitives.generateCylinder(32, 0.12, 0.3),
         parent: 'body',
-        color: flesh
+        color: flesh,
+        shininess: 200,
       },
       head: {
         id: 5,
         meshData: cs380.primitives.generateEllipsoid(32, 32, 0.25, 0.28, 0.25),
         parent: "neck",
-        color: flesh
+        color: flesh,
+        shininess: 200,
       },
       leftEye: {
         id: 6,
@@ -123,19 +124,22 @@ export default class Assignment3 extends cs380.BaseApp {
         id: 10,
         meshData: cs380.primitives.generateSphere(32, 32, elbowRadius),
         parent: "leftUpperArm",
-        color: flesh
+        color: flesh,
+        shininess: 200,
       },
       leftLowerArm: {
         id: 11,
         meshData: cs380.primitives.generateCylinder(32, lowerArmRadius, lowerArmLength),
         parent: "leftElbow",
-        color: flesh
+        color: flesh,
+        shininess: 200,
       },
       leftHand: {
         id: 12,
         meshData: cs380.primitives.generateSphere(32, 32, handRadius),
         parent: "leftLowerArm",
-        color: flesh
+        color: flesh,
+        shininess: 200,
       },
       rightUpperArm: {
         id: 13,
@@ -147,19 +151,22 @@ export default class Assignment3 extends cs380.BaseApp {
         id: 14,
         meshData: cs380.primitives.generateSphere(32, 32, elbowRadius),
         parent: "rightUpperArm",
-        color: flesh
+        color: flesh,
+        shininess: 200,
       },
       rightLowerArm: {
         id: 15,
         meshData: cs380.primitives.generateCylinder(32, lowerArmRadius, lowerArmLength),
         parent: "rightElbow",
-        color: flesh
+        color: flesh,
+        shininess: 200,
       },
       rightHand: {
         id: 16,
         meshData: cs380.primitives.generateSphere(32, 32, handRadius),
         parent: "rightLowerArm",
-        color: flesh
+        color: flesh,
+        shininess: 200,
       },
       lowerBody: {
         id: 17,
@@ -177,13 +184,15 @@ export default class Assignment3 extends cs380.BaseApp {
         id: 19,
         meshData: cs380.primitives.generateSphere(32, 32, upperLegRadius),
         parent: "leftUpperLeg",
-        color: flesh
+        color: flesh,
+        shininess: 200,
       },
       leftLowerLeg: {
         id: 20,
         meshData: cs380.primitives.generateCylinder(32, lowerLegRadius, lowerLegLength-bootsHeight),
         parent: "leftKnee",
-        color: flesh
+        color: flesh,
+        shininess: 200,
       },
       leftBootNeck: {
         id: 21,
@@ -207,13 +216,15 @@ export default class Assignment3 extends cs380.BaseApp {
         id: 24,
         meshData: cs380.primitives.generateSphere(32, 32, upperLegRadius),
         parent: "rightUpperLeg",
-        color: flesh
+        color: flesh,
+        shininess: 200,
       },
       rightLowerLeg: {
         id: 25,
         meshData: cs380.primitives.generateCylinder(32, lowerLegRadius, lowerLegLength-bootsHeight),
         parent: "rightKnee",
-        color: flesh
+        color: flesh,
+        shininess: 200,
       },
       rightBootNeck: {
         id: 26,
@@ -233,18 +244,18 @@ export default class Assignment3 extends cs380.BaseApp {
     for (const [key, value] of Object.entries(this.recipes)) {
       this.objects[key] = new cs380.PickableObject(
         cs380.Mesh.fromData(value.meshData),
-        customBlinnPhongShader,
+        blinnPhongShader,
         pickingShader,
         value.id
       );
       this.objects[key].uniforms.mainColor = vec3.fromValues(...value.color);
-      this.objects[key].uniforms.reflectivity = [1, 1, 1];
+      // this.objects[key].uniforms.reflectivity = [1, 1, 1];
+      if (value.shininess) this.objects[key].uniforms.shininess = value.shininess;
 
       if (value.parent && this.objects[value.parent]) this.objects[key].transform.setParent(this.objects[value.parent].transform);
       
     }
 
-    this.objects['head'].uniforms.reflectivity = [1, 0, 0];
 
     // initialize light sources
     this.lights = [];
@@ -258,26 +269,26 @@ export default class Assignment3 extends cs380.BaseApp {
 
     this.directionalLight = new Light();
     vec3.set(lightDir, -1, -1, -1);
-    this.directionalLight.illuminance = 0.9;
+    this.directionalLight.illuminance = 0.3;
     this.directionalLight.transform.lookAt(lightDir);
     this.directionalLight.type = LightType.DIRECTIONAL;
-    this.directionalLight.color = vec3.fromValues(1, 0.5, 0.5);
+    this.directionalLight.color = vec3.fromValues(1, 1, 1);
     this.lights.push(this.directionalLight);
 
     this.pointLight = new Light();
     vec3.set(this.pointLight.transform.localPosition, 0, 1, 1);
-    this.pointLight.illuminance = 0.9;
+    this.pointLight.illuminance = 0.3;
     this.pointLight.type = LightType.POINT;
-    this.pointLight.color = vec3.fromValues(0.5, 1, 0.5);
+    this.pointLight.color = vec3.fromValues(1, 1, 1);
     this.lights.push(this.pointLight);
 
     this.spotLight = new Light();
     vec3.set(this.spotLight.transform.localPosition, 0, 1, 1);
-    this.spotLight.illuminance = 0.9;
+    this.spotLight.illuminance = 0.3;
     vec3.set(lightDir, 0, -1, -1);
     this.spotLight.transform.lookAt(lightDir);
     this.spotLight.type = LightType.SPOTLIGHT;
-    this.spotLight.color = vec3.fromValues(0.5, 0.5, 1);
+    this.spotLight.color = vec3.fromValues(1, 1, 1);
     this.spotLight.angle = glMatrix.toRadian(10);
     this.spotLight.angleSmoothness = 100;
     this.lights.push(this.spotLight);
@@ -285,7 +296,7 @@ export default class Assignment3 extends cs380.BaseApp {
     this.fire = new Light();
     this.fire.transform.setParent(this.objects['leftHand'].transform);
     vec3.set(this.fire.transform.localPosition, 0, 0.3, 0);
-    this.fire.illuminance = 0.9;
+    this.fire.illuminance = 0.3;
     this.fire.type = LightType.POINT;
     this.fire.color = vec3.fromValues(1, 0, 0);
     this.lights.push(this.fire);
@@ -335,7 +346,7 @@ export default class Assignment3 extends cs380.BaseApp {
     this.thingsToClear.push(floorMesh);
     this.floor = new cs380.PickableObject(
       floorMesh, 
-      customBlinnPhongShader,
+      blinnPhongShader,
       pickingShader,
       101
     );
@@ -370,11 +381,11 @@ export default class Assignment3 extends cs380.BaseApp {
 
       <h3>Directional Light</h3>
       <label for="directional-illuminance">illuminance</label>
-      <input type="range" min=0 max=1 value=1 step=0.01 id="directional-illuminance"><br/>
+      <input type="range" min=0 max=1 value=0.3 step=0.01 id="directional-illuminance"><br/>
 
       <h3>Point Light</h3>
       <label for="point-illuminance">illuminance</label>
-      <input type="range" min=0 max=1 value=1 step=0.01 id="point-illuminance"><br/>
+      <input type="range" min=0 max=1 value=0.3 step=0.01 id="point-illuminance"><br/>
       <label for="point-pos-x">pos-x</label>
       <input type="range" min=-2 max=2 value=0 step=0.01 id="point-pos-x"><br/>
       <label for="point-pos-y">pos-y</label>
@@ -384,7 +395,7 @@ export default class Assignment3 extends cs380.BaseApp {
 
       <h3>Spotlight</h3>
       <label for="spot-illuminance">illuminance</label>
-      <input type="range" min=0 max=1 value=1 step=0.01 id="spot-illuminance"><br/>
+      <input type="range" min=0 max=1 value=0.3 step=0.01 id="spot-illuminance"><br/>
       <label for="spot-pos-x">pos-x</label>
       <input type="range" min=-2 max=2 value=0 step=0.01 id="spot-pos-x"><br/>
       <label for="spot-pos-y">pos-y</label>
@@ -398,7 +409,7 @@ export default class Assignment3 extends cs380.BaseApp {
 
       <h3>Fire</h3>
       <label for="fire-illuminance">illuminance</label>
-      <input type="range" min=0 max=1 value=1 step=0.01 id="fire-illuminance"><br/>
+      <input type="range" min=0 max=1 value=0.3 step=0.01 id="fire-illuminance"><br/>
 
       <h3>Basic requirements</h3>
       <ul>

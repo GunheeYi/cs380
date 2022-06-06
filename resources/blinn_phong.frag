@@ -14,6 +14,8 @@ out vec4 output_color;
 uniform mat4 cameraTransform;
 
 uniform vec3 mainColor;
+uniform vec3 reflectivity;
+uniform float shininess;
 
 struct Light {
     int type;
@@ -37,48 +39,50 @@ float random(vec3 seed) {
 void main() {
     mat4 W2C = inverse(cameraTransform);
     vec3 intensity = vec3(0.0, 0.0, 0.0);
-    
+
+    vec3 V = - normalize(frag_pos.xyz);
     vec3 N = normalize(frag_normal.xyz);
     
     for (int i=0; i<numLights; i++){
-        if (lights[i].enabled == false) continue;
-        
-        if (lights[i].type == DIRECTIONAL) {
-            // TODO: implement diffuse and specular reflections for directional light
-            float shininess = 200.0;
-            vec3 L = - normalize((W2C * vec4(lights[i].dir, 0.0)).xyz);
-            vec3 V = - normalize(frag_pos.xyz);
-            vec3 N = normalize(frag_normal.xyz);
-            vec3 H = normalize(L + V);
-            float diffuse = max(dot(N, L), 0.0);
-            float specular = pow(max(dot(N, H), 0.0), shininess);
-            intensity += lights[i].color * min(max((diffuse + specular) * lights[i].illuminance, 0.0), 1.0);
-        }
-        else if (lights[i].type == POINT) {
-            vec3 lightPos = (W2C * vec4(lights[i].pos, 1.0)).xyz;
-            vec3 frag2light = lightPos - frag_pos.xyz;
+        Light l = lights[i];
 
-            if (dot(frag2light, frag_normal.xyz) >= 0.0) {
-                float a = 1.0, b = 0.1, c = 1.0;
-                float distance = length(lightPos - frag_pos.xyz);
-                float attenuation = 1.0 / (a + b * distance + c * distance * distance);
-                intensity += lights[i].color * lights[i].illuminance * attenuation;
-            }
+        if (l.enabled == false) continue;
+
+        if (l.type == AMBIENT) {
+            intensity += l.color * l.illuminance * reflectivity;
+            continue;
         }
-        else if (lights[i].type == SPOTLIGHT) {
-            vec3 lightPos = (W2C * vec4(lights[i].pos, 1.0)).xyz;
-            vec3 lightDir = (W2C * vec4(lights[i].dir, 0.0)).xyz;
-            vec3 frag2light = lightPos - frag_pos.xyz;
-            float dotProduct = dot(normalize(-frag2light), normalize(lightDir));
+
+        vec3 lDir = (W2C * vec4(l.dir, 0.0)).xyz;
+        vec3 lPos = (W2C * vec4(l.pos, 1.0)).xyz;
+
+        vec3 L;
+        if (l.type == DIRECTIONAL) L = - normalize((W2C * vec4(l.dir, 0.0)).xyz);
+        else L = normalize((W2C * vec4(l.pos, 1.0)).xyz - frag_pos.xyz);
+        
+        vec3 H = normalize(L + V);
+
+        float diffuse = max(dot(N, L), 0.0);
+        float specular = pow(max(dot(N, H), 0.0), shininess);
+        
+        if (l.type == DIRECTIONAL) {
+            intensity += l.color * min(max((diffuse + specular) * l.illuminance, 0.0), 1.0) * reflectivity;
+            continue;
+        }
+
+        if (dot(L, frag_normal.xyz) < 0.0) continue;
+
+        float a = 1.0, b = 0.1, c = 1.0;
+        float distance = length(lPos - frag_pos.xyz);
+        float attenuation = 1.0 / (a + b * distance + c * distance * distance);
+
+        if (l.type == POINT) {
+            intensity += l.color * min(max((diffuse + specular) * l.illuminance, 0.0), 1.0) * attenuation;
+        }
+        else if (l.type == SPOTLIGHT) {
+            float dotProduct = dot(-L, normalize(lDir));
             float anglee = acos(dotProduct);
-            if (
-                // dot(frag2light, frag_normal.xyz) >= 0.0 &&
-                anglee <= lights[i].angle
-            ) intensity += lights[i].color * lights[i].illuminance * pow(max(dotProduct, 0.0), lights[i].angleSmoothness);
-        }
-        else if (lights[i].type == AMBIENT) {
-            // TODO: implement ambient reflection
-            intensity += lights[i].color * lights[i].illuminance;
+            if (anglee <= l.angle) intensity += l.color * min(max((diffuse + specular) * l.illuminance, 0.0), 1.0) * pow(max(dotProduct, 0.0), l.angleSmoothness) * attenuation;
         }
     }
     
