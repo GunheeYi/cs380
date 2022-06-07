@@ -5,9 +5,13 @@ import * as cs380 from "../cs380/cs380.js";
 
 import  { SolidShader }  from "../solid_shader.js";
 import { VertexColorShader } from "../vertex_color_shader.js";
-import { UnlitTextureShader } from "../unlit_texture_shader.js";
-import { SimpleShader } from "../simple_shader.js";
+
 import { LightType, Light, BlinnPhongShader } from "../blinn_phong.js";
+
+import { Skybox, SkyboxShader } from "../skybox_shader.js";
+
+import { UnlitTextureShader } from "../unlit_texture_shader.js";
+import { PipEdgeShader } from "../pip_edge_shader.js";
 
 function between(a, b) {
   return Math.random() * (b - a) + a;
@@ -447,8 +451,6 @@ export default class Assignment4 extends cs380.BaseApp {
     this.photo = new PhotoFilm()
     await this.photo.initialize(width, height);
     this.thingsToClear.push(this.photo);
-
-    // TODO: initialize your object + scene here
     
     // SimpleOrbitControl
     const orbitControlCenter = vec3.fromValues(0, 0, 0);
@@ -457,6 +459,60 @@ export default class Assignment4 extends cs380.BaseApp {
       orbitControlCenter
     );
     this.thingsToClear.push(this.simpleOrbitControl);
+
+    // SKYBOX #########################################################
+
+    // Rest of initialization below
+    const textureLoader = cs380.TextureLoader.load({
+      // posX: 'resources/skybox/right.jpg',
+      // negX: 'resources/skybox/left.jpg',
+      // posY: 'resources/skybox/top.jpg',
+      // negY: 'resources/skybox/bottom.jpg',
+      // posZ: 'resources/skybox/front.jpg',
+      // negZ: 'resources/skybox/back.jpg',
+      posX: 'resources/skybox/right.png',
+      negX: 'resources/skybox/left.png',
+      posY: 'resources/skybox/top.png',
+      negY: 'resources/skybox/bottom.png',
+      posZ: 'resources/skybox/front.png',
+      negZ: 'resources/skybox/back.png',
+    });
+
+    const shaderLoader = cs380.ShaderLoader.load({
+      skyboxShader: SkyboxShader.source,
+    });
+
+    const loaderResult = await Promise.all([textureLoader, shaderLoader]);
+    const textureLoaderResult = loaderResult[0];
+    const shaderLoaderResult = loaderResult[1];
+
+    // create Skybox
+    // generate cubemap texture
+    const cubemap = new cs380.Cubemap();
+    this.thingsToClear.push(cubemap);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    cubemap.initialize([
+      [gl.TEXTURE_CUBE_MAP_POSITIVE_X, textureLoaderResult.posX],
+      [gl.TEXTURE_CUBE_MAP_NEGATIVE_X, textureLoaderResult.negX],
+      [gl.TEXTURE_CUBE_MAP_POSITIVE_Y, textureLoaderResult.posY],
+      [gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, textureLoaderResult.negY],
+      [gl.TEXTURE_CUBE_MAP_POSITIVE_Z, textureLoaderResult.posZ],
+      [gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, textureLoaderResult.negZ]
+    ]);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
+    const skyboxShader = new SkyboxShader();
+    this.thingsToClear.push(skyboxShader);
+    skyboxShader.initialize(shaderLoaderResult.skyboxShader);
+
+
+    const cubeMeshData = cs380.primitives.generateCube();
+    const skyboxMesh = cs380.Mesh.fromData(cubeMeshData);
+
+    this.thingsToClear.push(skyboxMesh);
+    this.skybox = new Skybox(skyboxMesh, skyboxShader);
+    this.skybox.uniforms.mainTexture = cubemap.id;
+
 
     // initialize picking shader & buffer
     const pickingShader = await cs380.buildShader(cs380.PickingShader);
@@ -1219,7 +1275,6 @@ export default class Assignment4 extends cs380.BaseApp {
   }
 
   update(elapsed, dt) {
-    // TODO: Update objects here
     this.simpleOrbitControl.update(dt);
 
     for (let i = 0; i < this.trees.length; i++) {
@@ -1336,6 +1391,8 @@ export default class Assignment4 extends cs380.BaseApp {
     ...
     */
 
+    this.skybox.render(this.camera);
+
     for (const otherObject of this.otherObjects) otherObject.render(this.camera);
 
     for (let i = 0; i < this.trees.length; i++) this.trees[i].body.render(this.camera);
@@ -1361,7 +1418,7 @@ export default class Assignment4 extends cs380.BaseApp {
       // no camera effect - render directly to the scene
       gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
       gl.viewport(0, 0, width, height);
-      gl.clearColor(163/255, 204/255, 163/255, 1.0);
+      gl.clearColor(0.0, 0.0, 0.0, 1.0);
       gl.clearDepth(1.0);
       gl.enable(gl.DEPTH_TEST);
       gl.depthFunc(gl.LESS);
