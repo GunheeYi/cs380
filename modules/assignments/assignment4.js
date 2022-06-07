@@ -12,6 +12,7 @@ import { Skybox, SkyboxShader } from "../skybox_shader.js";
 
 import { UnlitTextureShader } from "../unlit_texture_shader.js";
 import { PipEdgeShader } from "../pip_edge_shader.js";
+import { BumpMapShader } from "../bump_map.js";
 
 function between(a, b) {
   return Math.random() * (b - a) + a;
@@ -351,7 +352,7 @@ class Framebuffer {
 }
 
 class PhotoFilm {
-  async initialize(width, height) {
+  async initialize(width, height, effect) {
     this.enabled = false;
     this.printFinished = false;
     this.width = width;
@@ -362,26 +363,38 @@ class PhotoFilm {
 
     const planeMeshData = cs380.primitives.generatePlane(1,1);
     const planeMesh = cs380.Mesh.fromData(planeMeshData);
-    const shader = await cs380.buildShader(UnlitTextureShader);
+    const unlitTextureShader = await cs380.buildShader(UnlitTextureShader);
     
     this.transform = new cs380.Transform();
     quat.rotateY(this.transform.localRotation, quat.create(), Math.PI);
 
-    this.background = new cs380.RenderObject(planeMesh, shader);
+    this.thingsToClear = [unlitTextureShader, planeMesh, this.framebuffer];
+
+    this.background = new cs380.RenderObject(planeMesh, unlitTextureShader);
     this.background.uniforms.useScreenSpace = true;
     this.background.uniforms.useColor = true;
     this.background.uniforms.solidColor = vec3.fromValues(1,1,1);
     vec3.set(this.background.transform.localScale, 1.2, 1.4, 1);
     this.background.transform.setParent(this.transform);
 
-    this.image = new cs380.RenderObject(planeMesh, shader);
-    this.image.uniforms.useScreenSpace = true;
-    this.image.uniforms.useColor = false;
-    this.image.uniforms.mainTexture = this.framebuffer.colorTexture;
+    if (effect=="none") {
+      this.image = new cs380.RenderObject(planeMesh, unlitTextureShader);
+      this.image.uniforms.useScreenSpace = true;
+      this.image.uniforms.useColor = false;
+      this.image.uniforms.mainTexture = this.framebuffer.colorTexture;
+    } else if (effect=="edge") {
+      const pipEdgeShader = await cs380.buildShader(PipEdgeShader);
+      this.image = new cs380.RenderObject(planeMesh, pipEdgeShader);
+      this.image.uniforms.useScreenSpace = true;
+      this.image.uniforms.useColor = false;
+      this.image.uniforms.mainTexture = this.framebuffer.colorTexture;
+      this.image.uniforms.width = width;
+      this.image.uniforms.height = height;
+      this.thingsToClear.push(pipEdgeShader);
+    }
+    
     vec3.set(this.image.transform.localPosition, 0, 0.1, 0);
     this.image.transform.setParent(this.transform);
-
-    this.thingsToClear = [shader, planeMesh, this.framebuffer];
 
     this.handleMouseDown = (e) => {
       if (this.printFinished) this.hide();
@@ -449,7 +462,7 @@ export default class Assignment4 extends cs380.BaseApp {
     this.thingsToClear = [];
 
     this.photo = new PhotoFilm()
-    await this.photo.initialize(width, height);
+    await this.photo.initialize(width, height, "none");
     this.thingsToClear.push(this.photo);
     
     // SimpleOrbitControl
@@ -476,15 +489,31 @@ export default class Assignment4 extends cs380.BaseApp {
       negY: 'resources/skybox/bottom.png',
       posZ: 'resources/skybox/front.png',
       negZ: 'resources/skybox/back.png',
+
+      bumpMap: 'resources/bumpMap.png',
     });
 
     const shaderLoader = cs380.ShaderLoader.load({
       skyboxShader: SkyboxShader.source,
+      bumpMapShader: BumpMapShader.source,
     });
 
     const loaderResult = await Promise.all([textureLoader, shaderLoader]);
     const textureLoaderResult = loaderResult[0];
     const shaderLoaderResult = loaderResult[1];
+
+    const skyboxShader = new SkyboxShader();
+    const bumpMapShader = new BumpMapShader();
+
+    skyboxShader.initialize(shaderLoaderResult.skyboxShader);
+    bumpMapShader.initialize(shaderLoaderResult.bumpMapShader);
+
+    this.thingsToClear.push(skyboxShader, bumpMapShader);
+
+    const bumpMapTexture = new cs380.Texture();
+    bumpMapTexture.initialize(textureLoaderResult.bumpMap);
+
+    this.thingsToClear.push(bumpMapTexture);
 
     // create Skybox
     // generate cubemap texture
@@ -501,18 +530,12 @@ export default class Assignment4 extends cs380.BaseApp {
     ]);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
-    const skyboxShader = new SkyboxShader();
-    this.thingsToClear.push(skyboxShader);
-    skyboxShader.initialize(shaderLoaderResult.skyboxShader);
-
-
     const cubeMeshData = cs380.primitives.generateCube();
     const skyboxMesh = cs380.Mesh.fromData(cubeMeshData);
 
     this.thingsToClear.push(skyboxMesh);
     this.skybox = new Skybox(skyboxMesh, skyboxShader);
     this.skybox.uniforms.mainTexture = cubemap.id;
-
 
     // initialize picking shader & buffer
     const pickingShader = await cs380.buildShader(cs380.PickingShader);
@@ -1012,103 +1035,111 @@ export default class Assignment4 extends cs380.BaseApp {
       
     }
 
-    // initialize light sources
-    this.lights = [];
-    const lightDir = vec3.create();
+    // light sources
+    {
+      this.lights = [];
+      const lightDir = vec3.create();
 
-    this.ambientLight = new Light(); 
-    this.ambientLight.illuminance = 0.1;
-    this.ambientLight.type = LightType.AMBIENT;
-    this.ambientLight.color = vec3.fromValues(1, 1, 1);
-    this.lights.push(this.ambientLight);
+      this.ambientLight = new Light(); 
+      this.ambientLight.illuminance = 0.1;
+      this.ambientLight.type = LightType.AMBIENT;
+      this.ambientLight.color = vec3.fromValues(1, 1, 1);
+      this.lights.push(this.ambientLight);
 
-    this.directionalLight = new Light();
-    vec3.set(lightDir, -1, -1, -1);
-    this.directionalLight.illuminance = 0.3;
-    this.directionalLight.transform.lookAt(lightDir);
-    this.directionalLight.type = LightType.DIRECTIONAL;
-    this.directionalLight.color = vec3.fromValues(1, 1, 1);
-    this.lights.push(this.directionalLight);
+      this.directionalLight = new Light();
+      vec3.set(lightDir, -1, -1, -1);
+      this.directionalLight.illuminance = 0.3;
+      this.directionalLight.transform.lookAt(lightDir);
+      this.directionalLight.type = LightType.DIRECTIONAL;
+      this.directionalLight.color = vec3.fromValues(1, 1, 1);
+      this.lights.push(this.directionalLight);
 
-    this.pointLight = new Light();
-    vec3.set(this.pointLight.transform.localPosition, 0, 1, 1);
-    this.pointLight.illuminance = 0.3;
-    this.pointLight.type = LightType.POINT;
-    this.pointLight.color = vec3.fromValues(1, 1, 1);
-    this.lights.push(this.pointLight);
+      this.pointLight = new Light();
+      vec3.set(this.pointLight.transform.localPosition, 0, 1, 1);
+      this.pointLight.illuminance = 0.3;
+      this.pointLight.type = LightType.POINT;
+      this.pointLight.color = vec3.fromValues(1, 1, 1);
+      this.lights.push(this.pointLight);
 
-    this.spotLight = new Light();
-    vec3.set(this.spotLight.transform.localPosition, 0, 1, 1);
-    this.spotLight.illuminance = 0.3;
-    vec3.set(lightDir, 0, -1, -1);
-    this.spotLight.transform.lookAt(lightDir);
-    this.spotLight.type = LightType.SPOTLIGHT;
-    this.spotLight.color = vec3.fromValues(1, 1, 1);
-    this.spotLight.angle = glMatrix.toRadian(10);
-    this.spotLight.angleSmoothness = 100;
-    this.lights.push(this.spotLight);
+      this.spotLight = new Light();
+      vec3.set(this.spotLight.transform.localPosition, 0, 1, 1);
+      this.spotLight.illuminance = 0.3;
+      vec3.set(lightDir, 0, -1, -1);
+      this.spotLight.transform.lookAt(lightDir);
+      this.spotLight.type = LightType.SPOTLIGHT;
+      this.spotLight.color = vec3.fromValues(1, 1, 1);
+      this.spotLight.angle = glMatrix.toRadian(10);
+      this.spotLight.angleSmoothness = 100;
+      this.lights.push(this.spotLight);
 
-    this.fire = new Light();
-    this.fire.transform.setParent(this.objects['leftHand'].transform);
-    vec3.set(this.fire.transform.localPosition, 0, 0.3, 0);
-    this.fire.illuminance = 0.3;
-    this.fire.type = LightType.POINT;
-    this.fire.color = vec3.fromValues(1, 0, 0);
-    this.lights.push(this.fire);
+      this.fire = new Light();
+      this.fire.transform.setParent(this.objects['leftHand'].transform);
+      vec3.set(this.fire.transform.localPosition, 0, 0.3, 0);
+      this.fire.illuminance = 0.3;
+      this.fire.type = LightType.POINT;
+      this.fire.color = vec3.fromValues(1, 0, 0);
+      this.lights.push(this.fire);
 
-    for (const [key, _] of Object.entries(this.recipes)) this.objects[key].uniforms.lights = this.lights;
-
-    quat.setAxisAngle( this.objects.upperBody.transform.localRotation, vec3.fromValues(0, 0, 1), 180 * DEG );
-    vec3.set(this.objects.upperBody.transform.localPosition, 0, 1, 0);
-    vec3.set(this.objects.shoulder.transform.localPosition, 0, 1, 0);
-    vec3.set(this.objects.neck.transform.localPosition, 0, 1, 0);
-    vec3.set(this.objects.head.transform.localPosition, 0, 0.4, 0);
-    vec3.set(this.objects.hair.transform.localPosition, 0, 0, 0);
-    vec3.set(this.objects.leftEye.transform.localPosition, -0.06, 0, 0.24);
-    vec3.set(this.objects.rightEye.transform.localPosition, 0.06, 0, 0.24);
-    vec3.set(this.objects.lowerBody.transform.localPosition, 0, -1, 0);
-
-    quat.setAxisAngle( this.objects.leftUpperArm.transform.localRotation, vec3.fromValues(0, 0, 1), 160 * DEG );
-    vec3.set(this.objects.leftUpperArm.transform.localPosition, -(shoulderWidth/2-0.1), 0.9, 0);
-    vec3.set(this.objects.leftElbow.transform.localPosition, 0, upperArmLength+0.03, 0);
-    quat.setAxisAngle( this.objects.leftLowerArm.transform.localRotation, vec3.fromValues(0, 0, 1), 20 * DEG );
-    vec3.set(this.objects.leftLowerArm.transform.localPosition, 0, upperArmRadius-lowerArmRadius, 0);
-    vec3.set(this.objects.leftHand.transform.localPosition, 0, lowerArmLength, 0);
-
-    quat.setAxisAngle( this.objects.rightUpperArm.transform.localRotation, vec3.fromValues(0, 0, 1), -160 * DEG );
-    vec3.set(this.objects.rightUpperArm.transform.localPosition, (shoulderWidth/2-0.1), 0.9, 0);
-    vec3.set(this.objects.rightElbow.transform.localPosition, 0, upperArmLength+0.03, 0);
-    quat.setAxisAngle( this.objects.rightLowerArm.transform.localRotation, vec3.fromValues(0, 0, 1), -20 * DEG );
-    vec3.set(this.objects.rightLowerArm.transform.localPosition, 0, upperArmRadius-lowerArmRadius, 0);
-    vec3.set(this.objects.rightHand.transform.localPosition, 0, lowerArmLength, 0);
-
-    quat.setAxisAngle(this.objects.leftUpperLeg.transform.localRotation, vec3.fromValues(0, 0, 1), 180 * DEG );
-    vec3.set(this.objects.leftUpperLeg.transform.localPosition, -0.13, -0.6, 0);
-    vec3.set(this.objects.leftKnee.transform.localPosition, 0, upperLegLength, 0);
-    vec3.set(this.objects.leftLowerLeg.transform.localPosition, 0, upperLegRadius-lowerLegRadius, 0);
-    vec3.set(this.objects.leftBootNeck.transform.localPosition, 0, lowerLegLength-bootsHeight, 0);
-    vec3.set(this.objects.leftBoot.transform.localPosition, 0, lowerLegLength-bootsRadius, bootsLength-lowerLegRadius);
+      for (const [key, _] of Object.entries(this.recipes)) this.objects[key].uniforms.lights = this.lights;
+    }
     
-    quat.setAxisAngle(this.objects.rightUpperLeg.transform.localRotation, vec3.fromValues(0, 0, 1), 180 * DEG );
-    vec3.set(this.objects.rightUpperLeg.transform.localPosition, 0.13, -0.6, 0);
-    vec3.set(this.objects.rightKnee.transform.localPosition, 0, upperLegLength, 0);
-    vec3.set(this.objects.rightLowerLeg.transform.localPosition, 0, upperLegRadius-lowerLegRadius, 0);
-    vec3.set(this.objects.rightBootNeck.transform.localPosition, 0, lowerLegLength-bootsHeight, 0);
-    vec3.set(this.objects.rightBoot.transform.localPosition, 0, lowerLegLength-bootsRadius, bootsLength-lowerLegRadius);
+    // character assembly
+    {
+      quat.setAxisAngle( this.objects.upperBody.transform.localRotation, vec3.fromValues(0, 0, 1), 180 * DEG );
+      vec3.set(this.objects.upperBody.transform.localPosition, 0, 1, 0);
+      vec3.set(this.objects.shoulder.transform.localPosition, 0, 1, 0);
+      vec3.set(this.objects.neck.transform.localPosition, 0, 1, 0);
+      vec3.set(this.objects.head.transform.localPosition, 0, 0.4, 0);
+      vec3.set(this.objects.hair.transform.localPosition, 0, 0, 0);
+      vec3.set(this.objects.leftEye.transform.localPosition, -0.06, 0, 0.24);
+      vec3.set(this.objects.rightEye.transform.localPosition, 0.06, 0, 0.24);
+      vec3.set(this.objects.lowerBody.transform.localPosition, 0, -1, 0);
+
+      quat.setAxisAngle( this.objects.leftUpperArm.transform.localRotation, vec3.fromValues(0, 0, 1), 160 * DEG );
+      vec3.set(this.objects.leftUpperArm.transform.localPosition, -(shoulderWidth/2-0.1), 0.9, 0);
+      vec3.set(this.objects.leftElbow.transform.localPosition, 0, upperArmLength+0.03, 0);
+      quat.setAxisAngle( this.objects.leftLowerArm.transform.localRotation, vec3.fromValues(0, 0, 1), 20 * DEG );
+      vec3.set(this.objects.leftLowerArm.transform.localPosition, 0, upperArmRadius-lowerArmRadius, 0);
+      vec3.set(this.objects.leftHand.transform.localPosition, 0, lowerArmLength, 0);
+
+      quat.setAxisAngle( this.objects.rightUpperArm.transform.localRotation, vec3.fromValues(0, 0, 1), -160 * DEG );
+      vec3.set(this.objects.rightUpperArm.transform.localPosition, (shoulderWidth/2-0.1), 0.9, 0);
+      vec3.set(this.objects.rightElbow.transform.localPosition, 0, upperArmLength+0.03, 0);
+      quat.setAxisAngle( this.objects.rightLowerArm.transform.localRotation, vec3.fromValues(0, 0, 1), -20 * DEG );
+      vec3.set(this.objects.rightLowerArm.transform.localPosition, 0, upperArmRadius-lowerArmRadius, 0);
+      vec3.set(this.objects.rightHand.transform.localPosition, 0, lowerArmLength, 0);
+
+      quat.setAxisAngle(this.objects.leftUpperLeg.transform.localRotation, vec3.fromValues(0, 0, 1), 180 * DEG );
+      vec3.set(this.objects.leftUpperLeg.transform.localPosition, -0.13, -0.6, 0);
+      vec3.set(this.objects.leftKnee.transform.localPosition, 0, upperLegLength, 0);
+      vec3.set(this.objects.leftLowerLeg.transform.localPosition, 0, upperLegRadius-lowerLegRadius, 0);
+      vec3.set(this.objects.leftBootNeck.transform.localPosition, 0, lowerLegLength-bootsHeight, 0);
+      vec3.set(this.objects.leftBoot.transform.localPosition, 0, lowerLegLength-bootsRadius, bootsLength-lowerLegRadius);
+      
+      quat.setAxisAngle(this.objects.rightUpperLeg.transform.localRotation, vec3.fromValues(0, 0, 1), 180 * DEG );
+      vec3.set(this.objects.rightUpperLeg.transform.localPosition, 0.13, -0.6, 0);
+      vec3.set(this.objects.rightKnee.transform.localPosition, 0, upperLegLength, 0);
+      vec3.set(this.objects.rightLowerLeg.transform.localPosition, 0, upperLegRadius-lowerLegRadius, 0);
+      vec3.set(this.objects.rightBootNeck.transform.localPosition, 0, lowerLegLength-bootsHeight, 0);
+      vec3.set(this.objects.rightBoot.transform.localPosition, 0, lowerLegLength-bootsRadius, bootsLength-lowerLegRadius);
+    }
 
     const floorMeshData = cs380.primitives.generateCube();
     const floorMesh = cs380.Mesh.fromData(floorMeshData);
     this.thingsToClear.push(floorMesh);
     this.floor = new cs380.PickableObject(
       floorMesh, 
-      blinnPhongShader,
+      // blinnPhongShader,
+      bumpMapShader,
       pickingShader,
       101
     );
+    this.floor.uniforms.mainTexture = bumpMapTexture.id;
+    this.floor.uniforms.mainColor = vec3.fromValues(0.5, 0.5, 0.5);
+    this.floor.uniforms.lights = this.lights;
 
     vec3.set(this.floor.transform.localPosition, 0, -2, 0);
     vec3.set(this.floor.transform.localScale, 10, 0.05, 10);
-    this.floor.uniforms.lights = this.lights; 
 
     // Event listener for interactions
     this.handleKeyDown = (e) => {
@@ -1144,7 +1175,7 @@ export default class Assignment4 extends cs380.BaseApp {
       <label for="setting-effect">Camera effect</label>
       <select id="setting-effect">
         <option value="none">None</option>
-        <option value="my-effect">My camera effect</option>
+        <option value="edge">Edge</option>
       </select> <br/>
 
       <!-- OPTIONAL: Add more UI elements here --> 
@@ -1207,7 +1238,12 @@ export default class Assignment4 extends cs380.BaseApp {
     this.camereEffect = 'none';
     cs380.utils.setInputBehavior(
       'setting-effect',
-      (val) => { this.camereEffect = val; },
+      async (val) =>{ 
+        this.camereEffect = val;
+
+        this.photo = new PhotoFilm()
+        await this.photo.initialize(width, height, this.camereEffect);
+      },
       true,
       false
     );
@@ -1439,10 +1475,6 @@ export default class Assignment4 extends cs380.BaseApp {
       //    - The plane should perfectly fit the viewport regardless of the camera movement (similar to skybox)
       //    - You may change the shader for a RenderObject like below:
       //        this.my_object.render(this.camera, *my_camera_effect_shader*)
-
-      // TODO: Remove the following line after you implemented.
-      // (and please, remove any console.log(..) within the update loop from your submission)
-      console.log("TODO: camera effect (" + this.camereEffect + ")");
 
       // Below codes will do no effectl it just renders the scene. You may (should?) delete this.
       gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);

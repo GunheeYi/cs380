@@ -242,7 +242,7 @@ export class MeshLoader {
     }
   }
 
-  static buildMesh(mesh, data, buildTangent = false) {
+  static buildMesh(mesh, data, buildTangent = true) {
     const numVertices = data.vertices.length / 3;
     const hasNormals = data.vertexNormals.length > 0;
     const hasUVs = data.textures.length > 0;
