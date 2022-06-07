@@ -13,6 +13,10 @@ import { Skybox, SkyboxShader } from "../skybox_shader.js";
 import { UnlitTextureShader } from "../unlit_texture_shader.js";
 import { PipEdgeShader } from "../pip_edge_shader.js";
 import { BumpMapShader } from "../bump_map.js";
+import { BlurShader } from "../blur.js";
+import { InversionShader } from "../inversion.js";
+import { GrayscaleShader } from "../grayscale.js";
+import { FishEyeShader } from "../fish_eye.js";
 
 function between(a, b) {
   return Math.random() * (b - a) + a;
@@ -351,6 +355,86 @@ class Framebuffer {
   }
 }
 
+class Pip {
+  async initialize(width, height, trans, scale, effect) {
+    this.framebuffer = new Framebuffer();
+    this.framebuffer.initialize(width, height);
+
+    const planeMeshData = cs380.primitives.generatePlane(2,2);
+    const planeMesh = cs380.Mesh.fromData(planeMeshData);
+
+    this.thingsToClear = [];
+
+    if (effect=="none") {
+      const unlitTextureShader = await cs380.buildShader(UnlitTextureShader);
+      this.image = new cs380.RenderObject(planeMesh, unlitTextureShader);
+      this.image.uniforms.useScreenSpace = true;
+      this.image.uniforms.useColor = false;
+      this.image.uniforms.mainTexture = this.framebuffer.colorTexture;
+    } else if (effect=="edge") {
+      const pipEdgeShader = await cs380.buildShader(PipEdgeShader);
+      this.image = new cs380.RenderObject(planeMesh, pipEdgeShader);
+      this.image.uniforms.useScreenSpace = true;
+      this.image.uniforms.useColor = false;
+      this.image.uniforms.mainTexture = this.framebuffer.colorTexture;
+      this.image.uniforms.width = width;
+      this.image.uniforms.height = height;
+      this.thingsToClear.push(pipEdgeShader);
+    } else if (effect=="blur") {
+      const blurShader = await cs380.buildShader(BlurShader);
+      this.image = new cs380.RenderObject(planeMesh, blurShader);
+      this.image.uniforms.useScreenSpace = true;
+      this.image.uniforms.useColor = false;
+      this.image.uniforms.mainTexture = this.framebuffer.colorTexture;
+      this.image.uniforms.width = width;
+      this.image.uniforms.height = height;
+      this.thingsToClear.push(blurShader);
+    } else if (effect=="grayscale") {
+      const grayscaleShader = await cs380.buildShader(GrayscaleShader);
+      this.image = new cs380.RenderObject(planeMesh, grayscaleShader);
+      this.image.uniforms.useScreenSpace = true;
+      this.image.uniforms.useColor = false;
+      this.image.uniforms.mainTexture = this.framebuffer.colorTexture;
+      this.image.uniforms.width = width;
+      this.image.uniforms.height = height;
+      this.thingsToClear.push(grayscaleShader);
+    } else if (effect=="inversion") {
+      const inversionShader = await cs380.buildShader(InversionShader);
+      this.image = new cs380.RenderObject(planeMesh, inversionShader);
+      this.image.uniforms.useScreenSpace = true;
+      this.image.uniforms.useColor = false;
+      this.image.uniforms.mainTexture = this.framebuffer.colorTexture;
+      this.image.uniforms.width = width;
+      this.image.uniforms.height = height;
+      this.thingsToClear.push(inversionShader);
+    } else if (effect=="fishEye") {
+      const fishEye = await cs380.buildShader(FishEyeShader);
+      this.image = new cs380.RenderObject(planeMesh, fishEye);
+      this.image.uniforms.useScreenSpace = true;
+      this.image.uniforms.useColor = false;
+      this.image.uniforms.mainTexture = this.framebuffer.colorTexture;
+      this.image.uniforms.width = width;
+      this.image.uniforms.height = height;
+      this.thingsToClear.push(fishEye);
+    }
+
+    vec3.set(this.image.transform.localScale, -1, 1, 1);
+    
+  }
+
+  render(camera) {
+    const prevDepthFunc = gl.getParameter(gl.DEPTH_FUNC);
+    gl.depthFunc(gl.ALWAYS);
+    this.image.render(camera);
+    gl.depthFunc(prevDepthFunc);
+  }
+  finalize(){
+    for (const thing of this.thingsToClear){
+      thing.finalize();    
+    }
+  }
+}
+
 class PhotoFilm {
   async initialize(width, height, effect) {
     this.enabled = false;
@@ -377,7 +461,13 @@ class PhotoFilm {
     vec3.set(this.background.transform.localScale, 1.2, 1.4, 1);
     this.background.transform.setParent(this.transform);
 
+    // this.image = new cs380.RenderObject(planeMesh, unlitTextureShader);
+    // this.image.uniforms.useScreenSpace = true;
+    // this.image.uniforms.useColor = false;
+    // this.image.uniforms.mainTexture = this.framebuffer.colorTexture;
+
     if (effect=="none") {
+      const unlitTextureShader = await cs380.buildShader(UnlitTextureShader);
       this.image = new cs380.RenderObject(planeMesh, unlitTextureShader);
       this.image.uniforms.useScreenSpace = true;
       this.image.uniforms.useColor = false;
@@ -391,6 +481,42 @@ class PhotoFilm {
       this.image.uniforms.width = width;
       this.image.uniforms.height = height;
       this.thingsToClear.push(pipEdgeShader);
+    } else if (effect=="blur") {
+      const blurShader = await cs380.buildShader(BlurShader);
+      this.image = new cs380.RenderObject(planeMesh, blurShader);
+      this.image.uniforms.useScreenSpace = true;
+      this.image.uniforms.useColor = false;
+      this.image.uniforms.mainTexture = this.framebuffer.colorTexture;
+      this.image.uniforms.width = width;
+      this.image.uniforms.height = height;
+      this.thingsToClear.push(blurShader);
+    } else if (effect=="grayscale") {
+      const grayscaleShader = await cs380.buildShader(GrayscaleShader);
+      this.image = new cs380.RenderObject(planeMesh, grayscaleShader);
+      this.image.uniforms.useScreenSpace = true;
+      this.image.uniforms.useColor = false;
+      this.image.uniforms.mainTexture = this.framebuffer.colorTexture;
+      this.image.uniforms.width = width;
+      this.image.uniforms.height = height;
+      this.thingsToClear.push(grayscaleShader);
+    } else if (effect=="inversion") {
+      const inversionShader = await cs380.buildShader(InversionShader);
+      this.image = new cs380.RenderObject(planeMesh, inversionShader);
+      this.image.uniforms.useScreenSpace = true;
+      this.image.uniforms.useColor = false;
+      this.image.uniforms.mainTexture = this.framebuffer.colorTexture;
+      this.image.uniforms.width = width;
+      this.image.uniforms.height = height;
+      this.thingsToClear.push(inversionShader);
+    } else if (effect=="fishEye") {
+      const fishEye = await cs380.buildShader(FishEyeShader);
+      this.image = new cs380.RenderObject(planeMesh, fishEye);
+      this.image.uniforms.useScreenSpace = true;
+      this.image.uniforms.useColor = false;
+      this.image.uniforms.mainTexture = this.framebuffer.colorTexture;
+      this.image.uniforms.width = width;
+      this.image.uniforms.height = height;
+      this.thingsToClear.push(fishEye);
     }
     
     vec3.set(this.image.transform.localPosition, 0, 0.1, 0);
@@ -1178,6 +1304,11 @@ export default class Assignment4 extends cs380.BaseApp {
       <select id="setting-effect">
         <option value="none">None</option>
         <option value="edge">Edge</option>
+        <option value="blur">Blur</option>
+        <option value="inversion">Inversion</option>
+        <option value="grayscale">Grayscale</option>
+        <option value="fishEye">Fish Eye</option>
+        <option value=""></option>
       </select> <br/>
 
       <!-- OPTIONAL: Add more UI elements here --> 
@@ -1243,19 +1374,6 @@ export default class Assignment4 extends cs380.BaseApp {
       shutterAudio.play();
     };
 
-    this.camereEffect = 'none';
-    cs380.utils.setInputBehavior(
-      'setting-effect',
-      async (val) =>{ 
-        this.camereEffect = val;
-
-        this.photo = new PhotoFilm()
-        await this.photo.initialize(width, height, this.camereEffect);
-      },
-      true,
-      false
-    );
-
     cs380.utils.setInputBehavior('ambient-illuminance', (val) => { this.ambientLight.illuminance=val;}, true, true);
     cs380.utils.setInputBehavior('directional-illuminance', (val) => { this.directionalLight.illuminance=val;}, true, true);
     cs380.utils.setInputBehavior('point-illuminance', (val) => { this.pointLight.illuminance=val;}, true, true);
@@ -1286,6 +1404,31 @@ export default class Assignment4 extends cs380.BaseApp {
     // gl.enable(gl.CULL_FACE);
     // gl.cullFace(gl.BACK);
     // gl.frontFace(gl.CCW);
+
+    //create pip
+    this.picture = new Pip();
+    this.thingsToClear.push(this.picture);
+    await this.picture.initialize(width, height, 
+      vec3.fromValues(0.0, 0.0, 0.0), //translation
+      vec3.fromValues(1.0, 1.0, 1.0), // scale
+      "none"
+    );
+
+    this.camereEffect = 'none';
+    cs380.utils.setInputBehavior(
+      'setting-effect',
+      async (val) =>{ 
+        await this.picture.initialize(width, height, 
+          vec3.fromValues(0.0, 0.0, 0.0), //translation
+          vec3.fromValues(1.0, 1.0, 1.0), // scale
+          val
+        );
+        await this.photo.initialize(width, height, val);
+      },
+      true,
+      false
+    );
+      
   }
 
   onKeyDown(key) {
@@ -1421,6 +1564,8 @@ export default class Assignment4 extends cs380.BaseApp {
     }
     this.floor.renderPicking(this.camera);
 
+    this.renderScene();
+
     // Render effect-applied scene to framebuffer of the photo if shutter is pressed
     if (this.shutterPressed) {
       this.shutterPressed = false;
@@ -1429,9 +1574,12 @@ export default class Assignment4 extends cs380.BaseApp {
     }
 
     // // Render effect-applied scene to the screen
-    this.renderImage(null);
+    this.renderImage(this.picture.framebuffer.fbo);
+    this.renderImage(this.fbo);
+    this.picture.render(this.camera);
 
     // Photos are rendered at the very last
+
     this.photo.update(elapsed);
     this.photo.render(this.camera);
   }
@@ -1439,13 +1587,6 @@ export default class Assignment4 extends cs380.BaseApp {
   renderScene() {
     // TODO: render scene *without* any effect
     // It would consist of every render(...) calls of objects in the scene
-
-    /* Example code
-    this.skybox.render(this.camera);
-    this.animatedBackground.render(this.camera);
-    this.avatar.render(this.camera);
-    ...
-    */
 
     this.skybox.render(this.camera);
 
@@ -1470,14 +1611,47 @@ export default class Assignment4 extends cs380.BaseApp {
 
     if (!width) width = this.width;
     if (!height) height = this.height;
-    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-    gl.viewport(0, 0, width, height);
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.clearDepth(1.0);
-    gl.enable(gl.DEPTH_TEST);
-    gl.depthFunc(gl.LESS);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    this.renderScene();
+    if (this.camereEffect == 'none') {
+      // no camera effect - render directly to the scene
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+      gl.viewport(0, 0, width, height);
+      gl.clearColor(0.0, 0.0, 0.0, 1.0);
+      gl.clearDepth(1.0);
+      gl.enable(gl.DEPTH_TEST);
+      gl.depthFunc(gl.LESS);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+      this.renderScene();
+    } else {
+      // TODO: render the scene with some camera effect to the target framebuffer object (fbo)
+      // Write at least one camera effect shader, which takes a rendered texture and draws modified version of the given texture
+      //
+      // Step-by-step guide:
+      //  1) Bind a separate framebuffer that you initialized beforehand
+      //  2) Render the scene to the framebuffer
+      //    - You probably need to use this.renderScene() here
+      //    - If the width/height differ from the target framebuffer, use gl.viewPort(..)
+      //  3) Bind a target framebuffer (fbo)
+      //  4) Render a plane that fits the viewport with a camera effect shader
+      //    - The plane should perfectly fit the viewport regardless of the camera movement (similar to skybox)
+      //    - You may change the shader for a RenderObject like below:
+      //        this.my_object.render(this.camera, *my_camera_effect_shader*)
+
+      // TODO: Remove the following line after you implemented.
+      // (and please, remove any console.log(..) within the update loop from your submission)
+      console.log("TODO: camera effect (" + this.camereEffect + ")");
+
+      // Below codes will do no effectl it just renders the scene. You may (should?) delete this.
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+      gl.viewport(0, 0, width, height);
+      gl.clearColor(0.0, 0.0, 0.0, 1.0);
+      gl.clearDepth(1.0);
+      gl.enable(gl.DEPTH_TEST);
+      gl.depthFunc(gl.LESS);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+      this.renderScene();
+    }
   }
 }
