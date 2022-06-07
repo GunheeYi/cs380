@@ -60,6 +60,8 @@ export class BlinnPhongShader extends cs380.BaseShader {
       numLights: gl.getUniformLocation(this.program, "numLights"),
       reflectivity: gl.getUniformLocation(this.program, "reflectivity"),
       shininess: gl.getUniformLocation(this.program, "shininess"),
+      useBumpMap: gl.getUniformLocation(this.program, "useBumpMap"),
+      bumpMap: gl.getUniformLocation(this.program, "bumpMap"),
     };
   }
 
@@ -72,6 +74,8 @@ export class BlinnPhongShader extends cs380.BaseShader {
     this.setUniformVec3(kv, "mainColor", 1, 1, 1);
     this.setUniformVec3(kv, "reflectivity", 1, 1, 1);
     this.setUniformFloat(kv, "shininess", 1);
+    this.setUniformInt(kv, "useBumpMap", 0);
+    this.setUniformTexture(kv, "bumpMap", 0);
 
     if ('lights' in kv) {
       const lights = kv['lights'];

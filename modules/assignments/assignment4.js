@@ -44,113 +44,113 @@ const browns = [
 
 // body
 const bodyVertices1 = [
-  392.74, 517.47, 0.02,
-  362.74, 402.92, 0.02,
-  143.1 ,445.42, 0.02,
-  8.74, 562.92, 0.02,
-  2.74, 614.92, 0.02,
-  25.74, 619.92, 0.02,
-  115.74, 782.92, 0.02,
-  210.74, 853.92, 0.02,
-  354.74, 835.92, 0.02,
-  539.74, 887.92, 0.02,
-  748.24, 835.92, 0.02,
-  896.74, 848.92, 0.02,
-  1021.74, 814.92, 0.02,
-  1099.74, 720.92, 0.02,
-  1231.74, 600.92, 0.02,
-  1302.74, 499.92, 0.02,
-  1325.77, 423.42, 0.02,
-  1309.74, 387.92, 0.02,
-  1066.74, 359.92, 0.02,
-  1011.74, 393.92, 0.02,
-  801.74, 384.92, 0.02,
-  624.74, 428.92, 0.02,
-  354.74, 401.92, 0.02,
+  392.74, 517.47, 0.4,
+  362.74, 402.92, 0.4,
+  143.1 ,445.42, 0.4,
+  8.74, 562.92, 0.4,
+  2.74, 614.92, 0.4,
+  25.74, 619.92, 0.4,
+  115.74, 782.92, 0.4,
+  210.74, 853.92, 0.4,
+  354.74, 835.92, 0.4,
+  539.74, 887.92, 0.4,
+  748.24, 835.92, 0.4,
+  896.74, 848.92, 0.4,
+  1021.74, 814.92, 0.4,
+  1099.74, 720.92, 0.4,
+  1231.74, 600.92, 0.4,
+  1302.74, 499.92, 0.4,
+  1325.77, 423.42, 0.4,
+  1309.74, 387.92, 0.4,
+  1066.74, 359.92, 0.4,
+  1011.74, 393.92, 0.4,
+  801.74, 384.92, 0.4,
+  624.74, 428.92, 0.4,
+  354.74, 401.92, 0.4,
 ];
 // head & right ear
 const bodyVertices2 = [
-  1154.74, 183.92, 0.02,
-  1180.74, 138.92, 0.02,
-  1159.74, 125.92, 0.02,
-  1147.74, 82.92, 0.02,
-  1107.74, 35.92, 0.02,
-  1073.74, 36.92, 0.02,
-  1066.74, 95.92, 0.02,
-  1087.74, 154.92, 0.02,
-  1128.74, 196.92, 0.02,
-  1133.74, 215.92, 0.02,
-  1111.74, 279.92, 0.02,
-  1066.74, 359.92, 0.02,
-  1309.74, 387.92, 0.02,
-  1325.77, 361.86, 0.02,
-  1372.74, 361.92, 0.02,
-  1393.74, 367.92, 0.02,
-  1422.74, 354.92, 0.02,
-  1443.74, 336.92, 0.02,
-  1443.74, 293.37, 0.02,
-  1406.74, 262.92, 0.02,
-  1378.74, 232.92, 0.02,
-  1378.74, 185.92, 0.02,
-  1371.74, 164.92, 0.02,
-  1344.74, 144.92, 0.02,
-  1313.74, 138.92, 0.02,
-  1263.74, 134.92, 0.02,
-  1178.74, 138.92, 0.02,
+  1154.74, 183.92, 0.4,
+  1180.74, 138.92, 0.4,
+  1159.74, 125.92, 0.4,
+  1147.74, 82.92, 0.4,
+  1107.74, 35.92, 0.4,
+  1073.74, 36.92, 0.4,
+  1066.74, 95.92, 0.4,
+  1087.74, 154.92, 0.4,
+  1128.74, 196.92, 0.4,
+  1133.74, 215.92, 0.4,
+  1111.74, 279.92, 0.4,
+  1066.74, 359.92, 0.4,
+  1309.74, 387.92, 0.4,
+  1325.77, 361.86, 0.4,
+  1372.74, 361.92, 0.4,
+  1393.74, 367.92, 0.4,
+  1422.74, 354.92, 0.4,
+  1443.74, 336.92, 0.4,
+  1443.74, 293.37, 0.4,
+  1406.74, 262.92, 0.4,
+  1378.74, 232.92, 0.4,
+  1378.74, 185.92, 0.4,
+  1371.74, 164.92, 0.4,
+  1344.74, 144.92, 0.4,
+  1313.74, 138.92, 0.4,
+  1263.74, 134.92, 0.4,
+  1178.74, 138.92, 0.4,
 ]
 // left ear
 const bodyVertices3 = [
-  1361.74, 88.92, 0.02,
-  1344.74, 144.92, 0.02,
-  1373.74, 130.92, 0.02,
-  1389.61, 130.92, 0.02,
-  1423.74, 94.92, 0.02,
-  1443.74, 58.18, 0.02,
-  1449.74, 23.92, 0.02,
-  1422.74, 2.92, 0.02,
-  1369.74, 27.92, 0.02,
-  1334.74, 64.92, 0.02,
-  1313.74, 138.92, 0.02,
-  1345.74, 144.92, 0.02,
+  1361.74, 88.92, 0.4,
+  1344.74, 144.92, 0.4,
+  1373.74, 130.92, 0.4,
+  1389.61, 130.92, 0.4,
+  1423.74, 94.92, 0.4,
+  1443.74, 58.18, 0.4,
+  1449.74, 23.92, 0.4,
+  1422.74, 2.92, 0.4,
+  1369.74, 27.92, 0.4,
+  1334.74, 64.92, 0.4,
+  1313.74, 138.92, 0.4,
+  1345.74, 144.92, 0.4,
 ]
 const hindLegVertices = [
-  359.74, 800.92, 0.02,
-  285.74, 753.92, 0.02,
-  266.24, 997.24, 0.02,
-  222.74, 817.92, 0.02,
-  241.74, 1036.92, 0.02,
-  139.74, 1019.92, 0.02,
-  239.74, 1094.92, 0.02,
-  197.64, 1161.04, 0.02,
-  327.15, 1309.94, 0.02,
-  281.74, 1376.92, 0.02,
-  339.74, 1340.92, 0.02,
-  298.74, 1366.92, 0.02,
-  392.74, 1406.92, 0.02,
-  311.46, 1376.92, 0.02,
-  354.41, 1423.42, 0.02,
-  311.46, 1403.85, 0.02,
+  359.74, 800.92, 0.4,
+  285.74, 753.92, 0.4,
+  266.24, 997.24, 0.4,
+  222.74, 817.92, 0.4,
+  241.74, 1036.92, 0.4,
+  139.74, 1019.92, 0.4,
+  239.74, 1094.92, 0.4,
+  197.64, 1161.04, 0.4,
+  327.15, 1309.94, 0.4,
+  281.74, 1376.92, 0.4,
+  339.74, 1340.92, 0.4,
+  298.74, 1366.92, 0.4,
+  392.74, 1406.92, 0.4,
+  311.46, 1376.92, 0.4,
+  354.41, 1423.42, 0.4,
+  311.46, 1403.85, 0.4,
 ];
 
 const foreLegVertices = [
-  818.74, 727.92, 0.02,
-  761.74, 796.92, 0.02,
-  914.74, 791.92, 0.02,
-  761.74, 980.35, 0.02,
-  811.04, 1088.67, 0.02,
-  747.84, 1036.35, 0.02,
-  779.74, 1137.92, 0.02,
-  726.24, 1178.34, 0.02,
-  741.74, 1298.92, 0.02,
-  667.74, 1316.92, 0.02,
-  748.24, 1322.32, 0.02,
-  673.74, 1343.92, 0.02,
-  748.24, 1348.32, 0.02,
-  681.74, 1363.92, 0.02,
-  768.74, 1386.92, 0.02,
-  700.74, 1394.92, 0.02,
-  756.04, 1404.32, 0.02,
-  726.24, 1404.32, 0.02,
+  818.74, 727.92, 0.4,
+  761.74, 796.92, 0.4,
+  914.74, 791.92, 0.4,
+  761.74, 980.35, 0.4,
+  811.04, 1088.67, 0.4,
+  747.84, 1036.35, 0.4,
+  779.74, 1137.92, 0.4,
+  726.24, 1178.34, 0.4,
+  741.74, 1298.92, 0.4,
+  667.74, 1316.92, 0.4,
+  748.24, 1322.32, 0.4,
+  673.74, 1343.92, 0.4,
+  748.24, 1348.32, 0.4,
+  681.74, 1363.92, 0.4,
+  768.74, 1386.92, 0.4,
+  700.74, 1394.92, 0.4,
+  756.04, 1404.32, 0.4,
+  726.24, 1404.32, 0.4,
 ];
 
 const leafThickness = 0.6 / 2;
@@ -172,12 +172,12 @@ function leafVertices(root, tip) {
   vec3.scaleAndAdd(right, center, lateral, leafThickness);
 
   return [
-    root[0], root[1], 0.03,
-    tip[0], tip[1], 0.03,
-    left[0], left[1], 0.03,
-    root[0], root[1], 0.03,
-    tip[0], tip[1], 0.03,
-    right[0], right[1], 0.03,
+    root[0], root[1], 0.6,
+    tip[0], tip[1], 0.6,
+    left[0], left[1], 0.6,
+    root[0], root[1], 0.6,
+    tip[0], tip[1], 0.6,
+    right[0], right[1], 0.6,
   ];
 }
 
@@ -233,15 +233,15 @@ function treeVertices(root,  tip, level, z) {
   vec3.scaleAndAdd(bottomRight, root, lateral, branchThickness);
   
   let vertices = [
-    tiptip[0], tiptip[1], 0.01 + z,
-    topLeft[0], topLeft[1], 0.01 + z,
-    bottomLeft[0], bottomLeft[1], 0.01 + z,
-    tiptip[0], tiptip[1], 0.01 + z,
-    bottomLeft[0], bottomLeft[1], 0.01 + z,
-    bottomRight[0], bottomRight[1], 0.01 + z,
-    tiptip[0], tiptip[1], 0.01 + z,
-    bottomRight[0], bottomRight[1], 0.01 + z,
-    topRight[0], topRight[1], 0.01 + z,
+    tiptip[0], tiptip[1], 0.2 + z,
+    topLeft[0], topLeft[1], 0.2 + z,
+    bottomLeft[0], bottomLeft[1], 0.2 + z,
+    tiptip[0], tiptip[1], 0.2 + z,
+    bottomLeft[0], bottomLeft[1], 0.2 + z,
+    bottomRight[0], bottomRight[1], 0.2 + z,
+    tiptip[0], tiptip[1], 0.2 + z,
+    bottomRight[0], bottomRight[1], 0.2 + z,
+    topRight[0], topRight[1], 0.2 + z,
   ];
 
   if (level != 0) {
@@ -817,7 +817,7 @@ export default class Assignment4 extends cs380.BaseApp {
       const tipY = rootY + between(0.25, 0.8);
 
       const body = makeRenderObject(
-        treeVertices(vec3.fromValues(0, 0, 0), vec3.fromValues(tipX-rootX, tipY-rootY, 0), 5, 0.009 * i / treeNum),
+        treeVertices(vec3.fromValues(0, 0, 0), vec3.fromValues(tipX-rootX, tipY-rootY, 0), 5, 0.09 * i / treeNum),
         this.solidShader, gl.TRIANGLES, 
         browns[Math.floor(between(0, browns.length))]
       );
@@ -877,19 +877,19 @@ export default class Assignment4 extends cs380.BaseApp {
       },
       leftEye: {
         id: 6,
-        meshData: cs380.primitives.generateCube(0.02, 0.05, 0.01),
+        meshData: cs380.primitives.generateCube(0.04, 0.1, 0.05),
         parent: "head",
         color: black
       },
       rightEye: {
         id: 7,
-        meshData: cs380.primitives.generateCube(0.02, 0.05, 0.01),
+        meshData: cs380.primitives.generateCube(0.04, 0.1, 0.05),
         parent: "head",
         color: black
       },
       hair: {
         id: 8,
-        meshData: cs380.primitives.generateHair(32, 32, 0.26, 0.28, 0.26, 0.4, 0.5),
+        meshData: cs380.primitives.generateHair(32, 32, 0.37, 0.40, 0.37, 0.4, 0.5),
         parent: "head",
         color: black
       },
@@ -1028,6 +1028,7 @@ export default class Assignment4 extends cs380.BaseApp {
         value.id
       );
       this.objects[key].uniforms.mainColor = vec3.fromValues(...value.color);
+      this.objects[key].uniforms.useBumpMap = false;
       // this.objects[key].uniforms.reflectivity = [1, 1, 1];
       if (value.shininess) this.objects[key].uniforms.shininess = value.shininess;
 
@@ -1038,7 +1039,7 @@ export default class Assignment4 extends cs380.BaseApp {
     // light sources
     {
       this.lights = [];
-      const lightDir = vec3.create();
+      let lightDir = vec3.create();
 
       this.ambientLight = new Light(); 
       this.ambientLight.illuminance = 0.1;
@@ -1090,7 +1091,7 @@ export default class Assignment4 extends cs380.BaseApp {
       vec3.set(this.objects.shoulder.transform.localPosition, 0, 1, 0);
       vec3.set(this.objects.neck.transform.localPosition, 0, 1, 0);
       vec3.set(this.objects.head.transform.localPosition, 0, 0.4, 0);
-      vec3.set(this.objects.hair.transform.localPosition, 0, 0, 0);
+      vec3.set(this.objects.hair.transform.localPosition, 0, 0.0, 0);
       vec3.set(this.objects.leftEye.transform.localPosition, -0.06, 0, 0.24);
       vec3.set(this.objects.rightEye.transform.localPosition, 0.06, 0, 0.24);
       vec3.set(this.objects.lowerBody.transform.localPosition, 0, -1, 0);
@@ -1129,13 +1130,14 @@ export default class Assignment4 extends cs380.BaseApp {
     this.thingsToClear.push(floorMesh);
     this.floor = new cs380.PickableObject(
       floorMesh, 
-      // blinnPhongShader,
-      bumpMapShader,
+      blinnPhongShader,
+      // bumpMapShader,
       pickingShader,
       101
     );
-    this.floor.uniforms.mainTexture = bumpMapTexture.id;
     this.floor.uniforms.mainColor = vec3.fromValues(0.5, 0.5, 0.5);
+    this.floor.uniforms.useBumpMap = false;
+    this.floor.uniforms.bumpMap = bumpMapTexture.id;
     this.floor.uniforms.lights = this.lights;
 
     vec3.set(this.floor.transform.localPosition, 0, -2, 0);
@@ -1187,6 +1189,12 @@ export default class Assignment4 extends cs380.BaseApp {
       <h3>Directional Light</h3>
       <label for="directional-illuminance">illuminance</label>
       <input type="range" min=0 max=1 value=0.3 step=0.01 id="directional-illuminance"><br/>
+      <label for="directional-dir-x">dir-x</label>
+      <input type="range" min=-1 max=1 value=-1 step=0.01 id="directional-dir-x"><br/>
+      <label for="directional-dir-y">dir-y</label>
+      <input type="range" min=-1 max=1 value=-1 step=0.01 id="directional-dir-y"><br/>
+      <label for="directional-dir-z">dir-z</label>
+      <input type="range" min=-1 max=1 value=-1 step=0.01 id="directional-dir-z">
 
       <h3>Point Light</h3>
       <label for="point-illuminance">illuminance</label>
@@ -1262,6 +1270,18 @@ export default class Assignment4 extends cs380.BaseApp {
     cs380.utils.setInputBehavior('spot-angle-smoothness', (val) => { this.spotLight.angleSmoothness=val; }, true, true);
     cs380.utils.setInputBehavior('fire-illuminance', (val) => { this.fire.illuminance=val; }, true, true);
 
+    const dirIds = ['directional-dir-x', 'directional-dir-y', 'directional-dir-z'];
+    for (const dirId of dirIds) {
+      cs380.utils.setInputBehavior(dirId, (_) => {
+        const dirX = document.getElementById('directional-dir-x').value;
+        const dirY = document.getElementById('directional-dir-y').value;
+        const dirZ = document.getElementById('directional-dir-z').value;
+        console.log(dirX, dirY, dirZ);
+        const dir = vec3.fromValues(dirX, dirY, dirZ);
+        this.directionalLight.transform.lookAt(dir);
+      }, true, true);
+    }
+
     // GL settings
     // gl.enable(gl.CULL_FACE);
     // gl.cullFace(gl.BACK);
@@ -1317,7 +1337,7 @@ export default class Assignment4 extends cs380.BaseApp {
       const tree = this.trees[i];
       const T = tree.body.transform;
       quat.rotateZ(T.localRotation, quat.create(), Math.sin(2* Math.PI * elapsed / tree.period + tree.phase) * tree.amplitude);
-      vec3.set(T.localPosition, tree.rootX, tree.rootY + 0.3, -1);
+      vec3.set(T.localPosition, tree.rootX, tree.rootY + 0.3, -2);
     }
 
     for (const part of this.deerParts) {
@@ -1347,7 +1367,7 @@ export default class Assignment4 extends cs380.BaseApp {
         T.localPosition,
         elapsed * deerSpeed % 6 - 4 + partPos[0],
         0.5 + partPos[1] + 0.3,
-        -1
+        -2
       );
     }
 
@@ -1355,12 +1375,12 @@ export default class Assignment4 extends cs380.BaseApp {
       const fern = this.ferns[i];
       const T = fern.body.transform;
       quat.rotateZ(T.localRotation, quat.create(), Math.sin(2* Math.PI * elapsed / fern.period + fern.phase) * fern.amplitude);
-      vec3.set(T.localPosition, fern.rootX, fern.rootY + 0.3, -1);
+      vec3.set(T.localPosition, fern.rootX, fern.rootY + 0.3, -2);
     }
 
     for (const otherObject of this.otherObjects) {
       otherObject.transform.localScale = vec3.fromValues(1.2, 1.2, 1);
-      otherObject.transform.localPosition = vec3.fromValues(0, 0.5, -1);
+      otherObject.transform.localPosition = vec3.fromValues(0, 0.5, -2);
     };
 
     const camMoveSpeed = 1;
@@ -1450,42 +1470,14 @@ export default class Assignment4 extends cs380.BaseApp {
 
     if (!width) width = this.width;
     if (!height) height = this.height;
-    if (this.camereEffect == 'none') {
-      // no camera effect - render directly to the scene
-      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-      gl.viewport(0, 0, width, height);
-      gl.clearColor(0.0, 0.0, 0.0, 1.0);
-      gl.clearDepth(1.0);
-      gl.enable(gl.DEPTH_TEST);
-      gl.depthFunc(gl.LESS);
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+    gl.viewport(0, 0, width, height);
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clearDepth(1.0);
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LESS);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-      this.renderScene();
-    } else {
-      // TODO: render the scene with some camera effect to the target framebuffer object (fbo)
-      // Write at least one camera effect shader, which takes a rendered texture and draws modified version of the given texture
-      //
-      // Step-by-step guide:
-      //  1) Bind a separate framebuffer that you initialized beforehand
-      //  2) Render the scene to the framebuffer
-      //    - You probably need to use this.renderScene() here
-      //    - If the width/height differ from the target framebuffer, use gl.viewPort(..)
-      //  3) Bind a target framebuffer (fbo)
-      //  4) Render a plane that fits the viewport with a camera effect shader
-      //    - The plane should perfectly fit the viewport regardless of the camera movement (similar to skybox)
-      //    - You may change the shader for a RenderObject like below:
-      //        this.my_object.render(this.camera, *my_camera_effect_shader*)
-
-      // Below codes will do no effectl it just renders the scene. You may (should?) delete this.
-      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-      gl.viewport(0, 0, width, height);
-      gl.clearColor(0.0, 0.0, 0.0, 1.0);
-      gl.clearDepth(1.0);
-      gl.enable(gl.DEPTH_TEST);
-      gl.depthFunc(gl.LESS);
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-      this.renderScene();
-    }
+    this.renderScene();
   }
 }

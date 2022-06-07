@@ -1,10 +1,14 @@
 #version 300 es
 
 layout(location = 0) in vec3 in_pos;
-layout(location = 1) in vec3 in_normal; 
+layout(location = 1) in vec3 in_normal;
+layout(location = 2) in vec2 in_uv; 
+layout(location = 3) in vec3 in_tangent;
 
 out vec4 frag_pos;
 out vec4 frag_normal;
+out vec4 frag_tangent;
+out vec2 bumpCoord;
 
 uniform mat4 projectionMatrix;
 uniform mat4 cameraTransform;
@@ -26,6 +30,9 @@ void main() {
 
     frag_pos = MVM * vec4(in_pos, 1);
     frag_normal = NVM * vec4(in_normal, 0);
+    frag_tangent = NVM * vec4(in_tangent, 0);
+
+	bumpCoord = in_uv;
     
     gl_Position = projectionMatrix * frag_pos;
 }

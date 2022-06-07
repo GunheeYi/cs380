@@ -8,6 +8,8 @@ precision highp float;
 
 in vec4 frag_pos;
 in vec4 frag_normal;
+in vec4 frag_tangent;
+in vec2 bumpCoord;
 
 out vec4 output_color;
 
@@ -16,6 +18,8 @@ uniform mat4 cameraTransform;
 uniform vec3 mainColor;
 uniform vec3 reflectivity;
 uniform float shininess;
+uniform int useBumpMap;
+uniform sampler2D bumpMap;
 
 struct Light {
     int type;
@@ -41,7 +45,13 @@ void main() {
     vec3 intensity = vec3(0.0, 0.0, 0.0);
 
     vec3 V = - normalize(frag_pos.xyz);
-    vec3 N = normalize(frag_normal.xyz);
+
+    vec3 N;
+    if (useBumpMap==1) {
+        float bump = length(texture(bumpMap, bumpCoord).rgb) / sqrt(3.0);
+        N = normalize(bump * frag_normal.xyz + (1.0-bump) * frag_tangent.xyz);
+    }
+    else N = normalize(frag_normal.xyz);
     
     for (int i=0; i<numLights; i++){
         Light l = lights[i];
